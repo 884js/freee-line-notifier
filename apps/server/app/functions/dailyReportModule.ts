@@ -220,8 +220,52 @@ const generateLineMessage = (result: GenerateDailyReportType) => {
   } as const;
 };
 
+const testGenerate = async ({
+  env,
+  lineUserId,
+}: { env: Env["Bindings"]; lineUserId: string }) => {
+  console.log("testGenerate called with lineUserId:", lineUserId);
+  
+  try {
+    const { DATABASE_URL } = env;
+    console.log("DATABASE_URL exists:", !!DATABASE_URL);
+    
+    const prisma = getPrisma(DATABASE_URL);
+    console.log("Prisma client created");
+    
+    const user = await prisma.user.findFirstOrThrow({
+      where: {
+        lineUserId,
+      },
+      include: {
+        activeCompany: true,
+      },
+    });
+    console.log("User found:", { id: user.id, companyId: user.activeCompany?.companyId });
+    
+    return {
+      companyId: user.activeCompany?.companyId || 0,
+      deals: [],
+      monthlyProgress: {
+        currentSales: 1000000,
+        currentExpenses: 500000,
+        currentProfit: 500000,
+        lastSales: 800000,
+        lastExpenses: 450000,
+        salesGrowthRate: 25.0,
+        expenseGrowthRate: 11.1,
+        profitMargin: 50.0,
+      },
+    };
+  } catch (error) {
+    console.error("Error in testGenerate:", error);
+    throw error;
+  }
+};
+
 export const dailyReportModule = {
   generate: generateDailyReport,
+  testGenerate,
   message: generateLineMessage,
 };
 

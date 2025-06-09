@@ -80,6 +80,7 @@ const handleMessageEvent = async ({
       await handleMenu(messageContext);
       break;
     case "デイリーレポート":
+    case "テスト":
       await handleDailyReport(messageContext);
       break;
     case "アカウント連携解除":
@@ -201,7 +202,7 @@ const handleDailyReport = async ({ event, env }: MessageHandlerContext) => {
     });
 
     console.log("Generating daily report for user:", lineUserId);
-    const result = await dailyReportModule.generate({
+    const result = await dailyReportModule.testGenerate({
       env,
       lineUserId,
     });
