@@ -56,87 +56,103 @@ const generateDailyReport = async ({
   env,
   lineUserId,
 }: { env: Env["Bindings"]; lineUserId: string }) => {
-  const { DATABASE_URL } = env;
-  const prisma = getPrisma(DATABASE_URL);
-  const user = await prisma.user.findFirstOrThrow({
-    where: {
-      lineUserId,
-    },
-    include: {
-      activeCompany: true,
-    },
-  });
-  const company = user.activeCompany;
+  console.log("generateDailyReport started for user:", lineUserId);
 
-  const result = await refreshAccessToken({
-    env,
-    refreshToken: company.refreshToken,
-  });
+  try {
+    const { DATABASE_URL } = env;
+    const prisma = getPrisma(DATABASE_URL);
+    const user = await prisma.user.findFirstOrThrow({
+      where: {
+        lineUserId,
+      },
+      include: {
+        activeCompany: true,
+      },
+    });
+    const company = user.activeCompany;
+    console.log("User and company found:", {
+      userId: user.id,
+      companyId: company?.companyId,
+    });
 
-  const privateApi = new FreeePrivateApi({
-    accessToken: result.accessToken,
-  });
+    console.log("Refreshing access token...");
+    const result = await refreshAccessToken({
+      env,
+      refreshToken: company.refreshToken,
+    });
+    console.log("Access token refreshed successfully");
 
-  const now = new Date();
-  const currentMonth = now.getMonth() + 1;
-  const currentYear = now.getFullYear();
-  const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
-  const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+    const privateApi = new FreeePrivateApi({
+      accessToken: result.accessToken,
+    });
 
-  const [deals, currentMonthTrialBalance, lastMonthTrialBalance] =
-    await Promise.all([
-      await privateApi.getDeals({
-        companyId: company.companyId,
-      }),
-      await privateApi.getTrialBalance({
-        companyId: company.companyId,
-        fiscalYear: currentYear,
-        startMonth: currentMonth,
-        endMonth: currentMonth,
-      }),
-      await privateApi.getTrialBalance({
-        companyId: company.companyId,
-        fiscalYear: lastMonthYear,
-        startMonth: lastMonth,
-        endMonth: lastMonth,
-      }),
-    ]);
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+    const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+    const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
 
-  const tagDeals = deals
-    .filter((deal) => {
-      const isRequiredReceipt = deal.details.some((detail) => {
-        return RECEIPT_REQUIRED_ITEMS.some(
-          (item) => item.id === detail.account_item_id,
-        );
-      });
-      const noReceipt = deal.receipts.length === 0;
-      return isRequiredReceipt && noReceipt;
-    })
-    .map((deal) => ({
-      id: deal.id,
-      date: deal.issue_date,
-      url: `https://secure.freee.co.jp/reports/journals?deal_id=${deal.id}&openExternalBrowser=1`,
-      amount: deal.amount,
-      accountItemNames: deal.details
-        .map(
-          (detail) =>
-            RECEIPT_REQUIRED_ITEMS.find(
-              (item) => item.id === detail.account_item_id,
-            )?.name,
-        )
-        .filter((name) => name !== undefined),
-    }));
+    console.log("Fetching data from freee API...");
+    const [deals, currentMonthTrialBalance, lastMonthTrialBalance] =
+      await Promise.all([
+        privateApi.getDeals({
+          companyId: company.companyId,
+        }),
+        privateApi.getTrialBalance({
+          companyId: company.companyId,
+          fiscalYear: currentYear,
+          startMonth: currentMonth,
+          endMonth: currentMonth,
+        }),
+        privateApi.getTrialBalance({
+          companyId: company.companyId,
+          fiscalYear: lastMonthYear,
+          startMonth: lastMonth,
+          endMonth: lastMonth,
+        }),
+      ]);
+    console.log("freee API data fetched successfully");
 
-  const monthlyProgress = calculateMonthlyProgress(
-    currentMonthTrialBalance,
-    lastMonthTrialBalance,
-  );
+    const tagDeals = deals
+      .filter((deal) => {
+        const isRequiredReceipt = deal.details.some((detail) => {
+          return RECEIPT_REQUIRED_ITEMS.some(
+            (item) => item.id === detail.account_item_id,
+          );
+        });
+        const noReceipt = deal.receipts.length === 0;
+        return isRequiredReceipt && noReceipt;
+      })
+      .map((deal) => ({
+        id: deal.id,
+        date: deal.issue_date,
+        url: `https://secure.freee.co.jp/reports/journals?deal_id=${deal.id}&openExternalBrowser=1`,
+        amount: deal.amount,
+        accountItemNames: deal.details
+          .map(
+            (detail) =>
+              RECEIPT_REQUIRED_ITEMS.find(
+                (item) => item.id === detail.account_item_id,
+              )?.name,
+          )
+          .filter((name) => name !== undefined),
+      }));
 
-  return {
-    companyId: company.companyId,
-    deals: tagDeals,
-    monthlyProgress,
-  };
+    const monthlyProgress = calculateMonthlyProgress(
+      currentMonthTrialBalance,
+      lastMonthTrialBalance,
+    );
+
+    console.log("Daily report generation completed successfully");
+    return {
+      companyId: company.companyId,
+      deals: tagDeals,
+      monthlyProgress,
+    };
+  } catch (error) {
+    console.error("Error in generateDailyReport:", error);
+    throw error;
+  }
 };
 
 const calculateMonthlyProgress = (
@@ -225,14 +241,14 @@ const testGenerate = async ({
   lineUserId,
 }: { env: Env["Bindings"]; lineUserId: string }) => {
   console.log("testGenerate called with lineUserId:", lineUserId);
-  
+
   try {
     const { DATABASE_URL } = env;
     console.log("DATABASE_URL exists:", !!DATABASE_URL);
-    
+
     const prisma = getPrisma(DATABASE_URL);
     console.log("Prisma client created");
-    
+
     const user = await prisma.user.findFirstOrThrow({
       where: {
         lineUserId,
@@ -241,8 +257,11 @@ const testGenerate = async ({
         activeCompany: true,
       },
     });
-    console.log("User found:", { id: user.id, companyId: user.activeCompany?.companyId });
-    
+    console.log("User found:", {
+      id: user.id,
+      companyId: user.activeCompany?.companyId,
+    });
+
     return {
       companyId: user.activeCompany?.companyId || 0,
       deals: [],

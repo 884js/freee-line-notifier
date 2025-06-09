@@ -202,7 +202,7 @@ const handleDailyReport = async ({ event, env }: MessageHandlerContext) => {
     });
 
     console.log("Generating daily report for user:", lineUserId);
-    const result = await dailyReportModule.testGenerate({
+    const result = await dailyReportModule.generate({
       env,
       lineUserId,
     });
