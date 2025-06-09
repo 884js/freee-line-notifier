@@ -180,26 +180,52 @@ const calculateMonthlyProgress = (
   
   const getSalesAmount = (trialBalance: typeof currentMonth) => {
     if (!trialBalance?.trial_pl?.balances) return 0;
+    // 収入金額の合計行を取得
+    const salesTotal = trialBalance.trial_pl.balances.find(
+      (balance) =>
+        balance.account_category_name === "収入金額" && balance.total_line,
+    );
+    
+    if (salesTotal) {
+      console.log("Sales total found:", salesTotal.closing_balance);
+      return salesTotal.closing_balance;
+    }
+    
+    // フォールバック: 売上高個別項目を合計
     const salesAccounts = trialBalance.trial_pl.balances.filter(
       (balance) =>
-        balance.account_item_name.includes("売上") &&
+        balance.account_item_name?.includes("売上") &&
         !balance.account_item_name.includes("原価"),
     );
+    console.log("Sales accounts found:", salesAccounts.length);
     return salesAccounts.reduce(
-      (sum, account) => sum + account.credit_amount - account.debit_amount,
+      (sum, account) => sum + account.closing_balance,
       0,
     );
   };
 
   const getExpenseAmount = (trialBalance: typeof currentMonth) => {
     if (!trialBalance?.trial_pl?.balances) return 0;
+    // 経費の合計行を取得
+    const expenseTotal = trialBalance.trial_pl.balances.find(
+      (balance) =>
+        balance.account_category_name === "経費" && balance.total_line,
+    );
+    
+    if (expenseTotal) {
+      console.log("Expense total found:", expenseTotal.closing_balance);
+      return expenseTotal.closing_balance;
+    }
+    
+    // フォールバック: 経費個別項目を合計
     const expenseAccounts = trialBalance.trial_pl.balances.filter(
       (balance) =>
-        balance.account_item_name.includes("費") ||
-        balance.account_item_name.includes("経費"),
+        balance.account_item_name?.includes("費") ||
+        balance.account_item_name?.includes("経費"),
     );
+    console.log("Expense accounts found:", expenseAccounts.length);
     return expenseAccounts.reduce(
-      (sum, account) => sum + account.debit_amount - account.credit_amount,
+      (sum, account) => sum + account.closing_balance,
       0,
     );
   };

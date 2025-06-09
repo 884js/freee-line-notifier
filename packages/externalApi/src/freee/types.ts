@@ -140,10 +140,12 @@ export type GetTrialBalanceResponse = {
     breakdown_display_type?: string;
     created_at: string;
     balances: {
-      account_item_id: number;
-      account_item_name: string;
+      account_item_id?: number;
+      account_item_name?: string;
       hierarchy_level: number;
       account_category_name: string;
+      total_line?: boolean;
+      parent_account_category_name?: string;
       opening_balance: number;
       debit_amount: number;
       credit_amount: number;
