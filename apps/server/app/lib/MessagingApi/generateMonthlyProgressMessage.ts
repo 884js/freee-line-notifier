@@ -30,7 +30,7 @@ export const generateMonthlyProgressMessage = (
     contents: [
       {
         type: "text",
-        text: "月次進捗",
+        text: "月次進捗（年度累計）",
         weight: "bold",
         size: "lg",
         margin: "sm",
@@ -45,7 +45,7 @@ export const generateMonthlyProgressMessage = (
         contents: [
           {
             type: "text",
-            text: "今月売上",
+            text: "今月累計売上",
             flex: 1,
             size: "sm",
             color: "#666666",
@@ -90,7 +90,7 @@ export const generateMonthlyProgressMessage = (
         contents: [
           {
             type: "text",
-            text: "今月経費",
+            text: "今月累計経費",
             flex: 1,
             size: "sm",
             color: "#666666",
@@ -140,7 +140,7 @@ export const generateMonthlyProgressMessage = (
         contents: [
           {
             type: "text",
-            text: "今月利益",
+            text: "今月累計利益",
             flex: 1,
             size: "sm",
             color: "#666666",

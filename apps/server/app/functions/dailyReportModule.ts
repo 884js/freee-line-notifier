@@ -282,7 +282,7 @@ const generateLineMessage = (result: GenerateDailyReportType) => {
     return `${sign}${value.toFixed(1)}%`;
   };
 
-  const altText = `${today} 売上${formatCurrency(monthlyProgress.currentSales)}(${formatPercentage(monthlyProgress.salesGrowthRate)}) 利益${formatCurrency(monthlyProgress.currentProfit)} 要領収書${deals.length}件`;
+  const altText = `${today} 累計売上${formatCurrency(monthlyProgress.currentSales)}(${formatPercentage(monthlyProgress.salesGrowthRate)}) 利益${formatCurrency(monthlyProgress.currentProfit)} 要領収書${deals.length}件`;
 
   return {
     type: "flex" as const,
