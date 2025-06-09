@@ -101,7 +101,7 @@ const generateDailyReport = async ({
     });
 
     console.log("Fetching data from freee API...");
-    const [deals, currentMonthTrialBalance, lastMonthTrialBalance] =
+    const [deals, currentMonthTrialBalance, lastMonthTrialBalance, thisYearTrialBalance] =
       await Promise.all([
         privateApi.getDeals({
           companyId: company.companyId,
@@ -109,19 +109,22 @@ const generateDailyReport = async ({
         privateApi.getTrialBalance({
           companyId: company.companyId,
           fiscalYear: currentYear,
-          startMonth: currentMonth,
           endMonth: currentMonth,
         }),
         privateApi.getTrialBalance({
           companyId: company.companyId,
           fiscalYear: lastMonthYear,
-          startMonth: lastMonth,
           endMonth: lastMonth,
+        }),
+        privateApi.getTrialBalance({
+          companyId: company.companyId,
+          fiscalYear: currentYear,
         }),
       ]);
     console.log("freee API data fetched successfully");
     console.log("Current month trial balance structure:", JSON.stringify(currentMonthTrialBalance, null, 2));
     console.log("Last month trial balance structure:", JSON.stringify(lastMonthTrialBalance, null, 2));
+    console.log("This year trial balance structure:", JSON.stringify(thisYearTrialBalance, null, 2));
 
     const tagDeals = deals
       .filter((deal) => {
