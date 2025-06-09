@@ -91,6 +91,14 @@ const generateDailyReport = async ({
     const currentYear = now.getFullYear();
     const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
     const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+    
+    console.log("Date calculation:", {
+      now: now.toISOString(),
+      currentMonth,
+      currentYear,
+      lastMonth,
+      lastMonthYear,
+    });
 
     console.log("Fetching data from freee API...");
     const [deals, currentMonthTrialBalance, lastMonthTrialBalance] =
