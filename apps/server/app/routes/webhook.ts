@@ -1,5 +1,15 @@
 import { getPrisma } from "@freee-line-notifier/prisma";
-import * as line from "@line/bot-sdk";
+import {
+  SignatureValidationFailed,
+  messagingApi,
+  middleware,
+  validateSignature,
+} from "@line/bot-sdk";
+import type {
+  MessageEvent,
+  TemplateMessage,
+  WebhookEvent,
+} from "@line/bot-sdk";
 import type { Context, Env } from "hono";
 import { createRoute } from "honox/factory";
 import { dailyReportModule } from "../functions/dailyReportModule";
@@ -10,18 +20,16 @@ type LineClientParams = {
 };
 
 export const POST = createRoute(async (c) => {
-  const events: line.WebhookEvent[] = await c.req
-    .json()
-    .then((data) => data.events);
+  const events: WebhookEvent[] = await c.req.json().then((data) => data.events);
 
   const signature = c.req.header("x-line-signature");
   const body = await c.req.text();
 
   if (
     !signature ||
-    !line.validateSignature(body, c.env.LINE_CHANNEL_SECRET, signature)
+    !validateSignature(body, c.env.LINE_CHANNEL_SECRET, signature)
   ) {
-    throw new line.SignatureValidationFailed("signature validation failed", {
+    throw new SignatureValidationFailed("signature validation failed", {
       signature,
     });
   }
@@ -52,7 +60,7 @@ const handleMessageEvent = async ({
   event,
   env,
   context,
-}: BaseContext & { event: line.WebhookEvent }) => {
+}: BaseContext & { event: WebhookEvent }) => {
   if (event.type !== "message" || event.message.type !== "text") {
     return;
   }
@@ -81,10 +89,10 @@ const handleMessageEvent = async ({
 };
 
 const initializeLineClient = ({ accessToken, secret }: LineClientParams) => {
-  const client = new line.messagingApi.MessagingApiClient({
+  const client = new messagingApi.MessagingApiClient({
     channelAccessToken: accessToken,
   });
-  line.middleware({ channelSecret: secret });
+  middleware({ channelSecret: secret });
   return client;
 };
 
@@ -94,7 +102,7 @@ type BaseContext = {
 };
 
 type MessageHandlerContext = BaseContext & {
-  event: line.MessageEvent;
+  event: MessageEvent;
 };
 
 const handleAccountSettings = async ({ event, env }: MessageHandlerContext) => {
@@ -182,22 +190,32 @@ const handleDailyReport = async ({ event, env }: MessageHandlerContext) => {
   const lineUserId = event.source.userId;
 
   if (!lineUserId) {
+    console.error("lineUserId not found");
     return;
   }
-  const client = initializeLineClient({
-    accessToken: env.LINE_CHANNEL_ACCESS_TOKEN,
-    secret: env.LINE_CHANNEL_SECRET,
-  });
 
-  const result = await dailyReportModule.generate({
-    env,
-    lineUserId,
-  });
+  try {
+    const client = initializeLineClient({
+      accessToken: env.LINE_CHANNEL_ACCESS_TOKEN,
+      secret: env.LINE_CHANNEL_SECRET,
+    });
 
-  await client.pushMessage({
-    to: lineUserId,
-    messages: [dailyReportModule.message(result)],
-  });
+    console.log("Generating daily report for user:", lineUserId);
+    const result = await dailyReportModule.generate({
+      env,
+      lineUserId,
+    });
+    console.log("Daily report generated:", { companyId: result.companyId });
+
+    await client.pushMessage({
+      to: lineUserId,
+      messages: [dailyReportModule.message(result)],
+    });
+    console.log("Daily report sent successfully");
+  } catch (error) {
+    console.error("Error in handleDailyReport:", error);
+    throw error;
+  }
 };
 
 const handleUnlinkAccount = async ({ event, env }: MessageHandlerContext) => {
@@ -245,5 +263,5 @@ const notLinkedMessage = (LIFF_URL: string) => {
         },
       ],
     },
-  } satisfies line.TemplateMessage;
+  } satisfies TemplateMessage;
 };
