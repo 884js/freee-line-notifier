@@ -32,7 +32,9 @@ export default {
 
       try {
         ctx.waitUntil(this.scheduled(controller, env, ctx));
-        return new Response(`Scheduled task triggered: ${cron}`, { status: 200 });
+        return new Response(`Scheduled task triggered: ${cron}`, {
+          status: 200,
+        });
       } catch (error) {
         console.error("Error in manual schedule trigger:", error);
         return new Response(`Error: ${error}`, { status: 500 });
@@ -85,24 +87,31 @@ async function handleSchedule({
         console.log(`Processing daily report for ${userList.length} users`);
         await Promise.all(
           userList.map(async (user, index) => {
-            console.log(`Processing user ${index + 1}/${userList.length}: ${user.lineUserId}`);
+            console.log(
+              `Processing user ${index + 1}/${userList.length}: ${user.lineUserId}`,
+            );
             try {
               const result = await dailyReportModule.generate({
                 env,
                 lineUserId: user.lineUserId,
               });
-              console.log("SCHEDULE_TYPE.DAILY_REPORT result", { 
-                userId: user.lineUserId, 
-                companyId: result.companyId 
+              console.log("SCHEDULE_TYPE.DAILY_REPORT result", {
+                userId: user.lineUserId,
+                companyId: result.companyId,
               });
 
               await client.pushMessage({
                 to: user.lineUserId,
                 messages: [dailyReportModule.message(result)],
               });
-              console.log(`Daily report sent successfully to user ${user.lineUserId}`);
+              console.log(
+                `Daily report sent successfully to user ${user.lineUserId}`,
+              );
             } catch (error) {
-              console.error(`Error processing daily report for user ${user.lineUserId}:`, error);
+              console.error(
+                `Error processing daily report for user ${user.lineUserId}:`,
+                error,
+              );
             }
           }),
         );

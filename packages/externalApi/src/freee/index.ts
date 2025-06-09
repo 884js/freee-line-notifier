@@ -269,8 +269,13 @@ export class FreeePrivateApi {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`Trial balance API error: ${response.status} ${response.statusText}`, errorText);
-      throw new Error(`Trial balance API failed: ${response.status} ${response.statusText}`);
+      console.error(
+        `Trial balance API error: ${response.status} ${response.statusText}`,
+        errorText,
+      );
+      throw new Error(
+        `Trial balance API failed: ${response.status} ${response.statusText}`,
+      );
     }
 
     const data = await response.json();

@@ -91,7 +91,7 @@ const generateDailyReport = async ({
     const currentYear = now.getFullYear();
     const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
     const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
-    
+
     console.log("Date calculation:", {
       now: now.toISOString(),
       currentMonth,
@@ -101,30 +101,43 @@ const generateDailyReport = async ({
     });
 
     console.log("Fetching data from freee API...");
-    const [deals, currentMonthTrialBalance, lastMonthTrialBalance, thisYearTrialBalance] =
-      await Promise.all([
-        privateApi.getDeals({
-          companyId: company.companyId,
-        }),
-        privateApi.getTrialBalance({
-          companyId: company.companyId,
-          fiscalYear: currentYear,
-          endMonth: currentMonth,
-        }),
-        privateApi.getTrialBalance({
-          companyId: company.companyId,
-          fiscalYear: lastMonthYear,
-          endMonth: lastMonth,
-        }),
-        privateApi.getTrialBalance({
-          companyId: company.companyId,
-          fiscalYear: currentYear,
-        }),
-      ]);
+    const [
+      deals,
+      currentMonthTrialBalance,
+      lastMonthTrialBalance,
+      thisYearTrialBalance,
+    ] = await Promise.all([
+      privateApi.getDeals({
+        companyId: company.companyId,
+      }),
+      privateApi.getTrialBalance({
+        companyId: company.companyId,
+        fiscalYear: currentYear,
+        endMonth: currentMonth,
+      }),
+      privateApi.getTrialBalance({
+        companyId: company.companyId,
+        fiscalYear: lastMonthYear,
+        endMonth: lastMonth,
+      }),
+      privateApi.getTrialBalance({
+        companyId: company.companyId,
+        fiscalYear: currentYear,
+      }),
+    ]);
     console.log("freee API data fetched successfully");
-    console.log("Current month trial balance structure:", JSON.stringify(currentMonthTrialBalance, null, 2));
-    console.log("Last month trial balance structure:", JSON.stringify(lastMonthTrialBalance, null, 2));
-    console.log("This year trial balance structure:", JSON.stringify(thisYearTrialBalance, null, 2));
+    console.log(
+      "Current month trial balance structure:",
+      JSON.stringify(currentMonthTrialBalance, null, 2),
+    );
+    console.log(
+      "Last month trial balance structure:",
+      JSON.stringify(lastMonthTrialBalance, null, 2),
+    );
+    console.log(
+      "This year trial balance structure:",
+      JSON.stringify(thisYearTrialBalance, null, 2),
+    );
 
     const tagDeals = deals
       .filter((deal) => {
@@ -175,9 +188,13 @@ const calculateMonthlyProgress = (
   thisYear: Awaited<ReturnType<FreeePrivateApi["getTrialBalance"]>>,
 ) => {
   console.log("Calculating monthly progress...");
-  
+
   // 安全性チェック
-  if (!currentMonth?.trial_pl?.balances || !lastMonth?.trial_pl?.balances || !thisYear?.trial_pl?.balances) {
+  if (
+    !currentMonth?.trial_pl?.balances ||
+    !lastMonth?.trial_pl?.balances ||
+    !thisYear?.trial_pl?.balances
+  ) {
     console.warn("Trial P&L data is incomplete, using fallback values");
     return {
       currentSales: 0,
@@ -191,7 +208,7 @@ const calculateMonthlyProgress = (
       monthlyExpenseIncrease: 0,
     };
   }
-  
+
   const getSalesAmount = (trialBalance: typeof currentMonth) => {
     if (!trialBalance?.trial_pl?.balances) return 0;
     // 収入金額の合計行を取得
@@ -199,12 +216,12 @@ const calculateMonthlyProgress = (
       (balance) =>
         balance.account_category_name === "収入金額" && balance.total_line,
     );
-    
+
     if (salesTotal) {
       console.log("Sales total found:", salesTotal.closing_balance);
       return salesTotal.closing_balance;
     }
-    
+
     // フォールバック: 売上高個別項目を合計
     const salesAccounts = trialBalance.trial_pl.balances.filter(
       (balance) =>
@@ -225,12 +242,12 @@ const calculateMonthlyProgress = (
       (balance) =>
         balance.account_category_name === "経費" && balance.total_line,
     );
-    
+
     if (expenseTotal) {
       console.log("Expense total found:", expenseTotal.closing_balance);
       return expenseTotal.closing_balance;
     }
-    
+
     // フォールバック: 経費個別項目を合計
     const expenseAccounts = trialBalance.trial_pl.balances.filter(
       (balance) =>
@@ -247,7 +264,7 @@ const calculateMonthlyProgress = (
   // thisYear（年度累計）を主要データソースとして使用
   const currentSales = getSalesAmount(thisYear);
   const currentExpenses = getExpenseAmount(thisYear);
-  
+
   // 月次増加分の計算は現在月と前月のデータを使用
   const currentMonthSales = getSalesAmount(currentMonth);
   const lastMonthSales = getSalesAmount(lastMonth);
@@ -255,7 +272,9 @@ const calculateMonthlyProgress = (
   const lastMonthExpenses = getExpenseAmount(lastMonth);
 
   const salesGrowthRate =
-    lastMonthSales > 0 ? ((currentMonthSales - lastMonthSales) / lastMonthSales) * 100 : 0;
+    lastMonthSales > 0
+      ? ((currentMonthSales - lastMonthSales) / lastMonthSales) * 100
+      : 0;
   const expenseGrowthRate =
     lastMonthExpenses > 0
       ? ((currentMonthExpenses - lastMonthExpenses) / lastMonthExpenses) * 100
@@ -263,7 +282,7 @@ const calculateMonthlyProgress = (
   const currentProfit = currentSales - currentExpenses;
   const profitMargin =
     currentSales > 0 ? (currentProfit / currentSales) * 100 : 0;
-  
+
   // 今月の経費増加分を計算
   const monthlyExpenseIncrease = currentMonthExpenses - lastMonthExpenses;
 
