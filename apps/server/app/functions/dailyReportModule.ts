@@ -252,6 +252,9 @@ const calculateMonthlyProgress = (
   const currentProfit = currentSales - currentExpenses;
   const profitMargin =
     currentSales > 0 ? (currentProfit / currentSales) * 100 : 0;
+  
+  // 今月の経費増加分を計算
+  const monthlyExpenseIncrease = currentExpenses - lastExpenses;
 
   return {
     currentSales,
@@ -262,6 +265,7 @@ const calculateMonthlyProgress = (
     salesGrowthRate,
     expenseGrowthRate,
     profitMargin,
+    monthlyExpenseIncrease,
   };
 };
 

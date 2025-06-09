@@ -45,7 +45,7 @@ export const generateMonthlyProgressMessage = (
         contents: [
           {
             type: "text",
-            text: "今月累計売上",
+            text: "今年累計売上",
             flex: 1,
             size: "sm",
             color: "#666666",
@@ -90,14 +90,14 @@ export const generateMonthlyProgressMessage = (
         contents: [
           {
             type: "text",
-            text: "今月累計経費",
+            text: "今年累計経費",
             flex: 1,
             size: "sm",
             color: "#666666",
           },
           {
             type: "text",
-            text: formatCurrency(monthlyProgress.currentExpenses),
+            text: `${formatCurrency(monthlyProgress.currentExpenses)}(月+${formatCurrency(monthlyProgress.monthlyExpenseIncrease)})`,
             flex: 1,
             size: "sm",
             align: "end",
@@ -105,30 +105,6 @@ export const generateMonthlyProgressMessage = (
           },
         ],
         margin: "sm",
-      },
-      {
-        type: "box",
-        layout: "horizontal",
-        contents: [
-          {
-            type: "text",
-            text: "前月比",
-            flex: 1,
-            size: "xs",
-            color: "#999999",
-          },
-          {
-            type: "text",
-            text: `${getGrowthIcon(-monthlyProgress.expenseGrowthRate)} ${formatPercentage(
-              monthlyProgress.expenseGrowthRate,
-            )}`,
-            flex: 1,
-            size: "xs",
-            align: "end",
-            color:
-              monthlyProgress.expenseGrowthRate < 0 ? "#00c73c" : "#ff4444",
-          },
-        ],
       },
       {
         type: "separator",
@@ -140,7 +116,7 @@ export const generateMonthlyProgressMessage = (
         contents: [
           {
             type: "text",
-            text: "今月累計利益",
+            text: "今年累計利益",
             flex: 1,
             size: "sm",
             color: "#666666",
