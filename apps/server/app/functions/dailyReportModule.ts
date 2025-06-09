@@ -112,6 +112,8 @@ const generateDailyReport = async ({
         }),
       ]);
     console.log("freee API data fetched successfully");
+    console.log("Current month trial balance structure:", JSON.stringify(currentMonthTrialBalance, null, 2));
+    console.log("Last month trial balance structure:", JSON.stringify(lastMonthTrialBalance, null, 2));
 
     const tagDeals = deals
       .filter((deal) => {
@@ -159,7 +161,25 @@ const calculateMonthlyProgress = (
   currentMonth: Awaited<ReturnType<FreeePrivateApi["getTrialBalance"]>>,
   lastMonth: Awaited<ReturnType<FreeePrivateApi["getTrialBalance"]>>,
 ) => {
+  console.log("Calculating monthly progress...");
+  
+  // 安全性チェック
+  if (!currentMonth?.trial_balance?.balances || !lastMonth?.trial_balance?.balances) {
+    console.warn("Trial balance data is incomplete, using fallback values");
+    return {
+      currentSales: 0,
+      currentExpenses: 0,
+      currentProfit: 0,
+      lastSales: 0,
+      lastExpenses: 0,
+      salesGrowthRate: 0,
+      expenseGrowthRate: 0,
+      profitMargin: 0,
+    };
+  }
+  
   const getSalesAmount = (trialBalance: typeof currentMonth) => {
+    if (!trialBalance?.trial_balance?.balances) return 0;
     const salesAccounts = trialBalance.trial_balance.balances.filter(
       (balance) =>
         balance.account_item_name.includes("売上") &&
@@ -172,6 +192,7 @@ const calculateMonthlyProgress = (
   };
 
   const getExpenseAmount = (trialBalance: typeof currentMonth) => {
+    if (!trialBalance?.trial_balance?.balances) return 0;
     const expenseAccounts = trialBalance.trial_balance.balances.filter(
       (balance) =>
         balance.account_item_name.includes("費") ||
