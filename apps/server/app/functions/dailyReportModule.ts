@@ -154,6 +154,7 @@ const generateDailyReport = async ({
     const monthlyProgress = calculateMonthlyProgress(
       currentMonthTrialBalance,
       lastMonthTrialBalance,
+      thisYearTrialBalance,
     );
 
     console.log("Daily report generation completed successfully");
@@ -171,11 +172,12 @@ const generateDailyReport = async ({
 const calculateMonthlyProgress = (
   currentMonth: Awaited<ReturnType<FreeePrivateApi["getTrialBalance"]>>,
   lastMonth: Awaited<ReturnType<FreeePrivateApi["getTrialBalance"]>>,
+  thisYear: Awaited<ReturnType<FreeePrivateApi["getTrialBalance"]>>,
 ) => {
   console.log("Calculating monthly progress...");
   
   // 安全性チェック
-  if (!currentMonth?.trial_pl?.balances || !lastMonth?.trial_pl?.balances) {
+  if (!currentMonth?.trial_pl?.balances || !lastMonth?.trial_pl?.balances || !thisYear?.trial_pl?.balances) {
     console.warn("Trial P&L data is incomplete, using fallback values");
     return {
       currentSales: 0,
@@ -186,6 +188,7 @@ const calculateMonthlyProgress = (
       salesGrowthRate: 0,
       expenseGrowthRate: 0,
       profitMargin: 0,
+      monthlyExpenseIncrease: 0,
     };
   }
   
@@ -241,30 +244,35 @@ const calculateMonthlyProgress = (
     );
   };
 
-  const currentSales = getSalesAmount(currentMonth);
-  const currentExpenses = getExpenseAmount(currentMonth);
-  const lastSales = getSalesAmount(lastMonth);
-  const lastExpenses = getExpenseAmount(lastMonth);
+  // thisYear（年度累計）を主要データソースとして使用
+  const currentSales = getSalesAmount(thisYear);
+  const currentExpenses = getExpenseAmount(thisYear);
+  
+  // 月次増加分の計算は現在月と前月のデータを使用
+  const currentMonthSales = getSalesAmount(currentMonth);
+  const lastMonthSales = getSalesAmount(lastMonth);
+  const currentMonthExpenses = getExpenseAmount(currentMonth);
+  const lastMonthExpenses = getExpenseAmount(lastMonth);
 
   const salesGrowthRate =
-    lastSales > 0 ? ((currentSales - lastSales) / lastSales) * 100 : 0;
+    lastMonthSales > 0 ? ((currentMonthSales - lastMonthSales) / lastMonthSales) * 100 : 0;
   const expenseGrowthRate =
-    lastExpenses > 0
-      ? ((currentExpenses - lastExpenses) / lastExpenses) * 100
+    lastMonthExpenses > 0
+      ? ((currentMonthExpenses - lastMonthExpenses) / lastMonthExpenses) * 100
       : 0;
   const currentProfit = currentSales - currentExpenses;
   const profitMargin =
     currentSales > 0 ? (currentProfit / currentSales) * 100 : 0;
   
   // 今月の経費増加分を計算
-  const monthlyExpenseIncrease = currentExpenses - lastExpenses;
+  const monthlyExpenseIncrease = currentMonthExpenses - lastMonthExpenses;
 
   return {
     currentSales,
     currentExpenses,
     currentProfit,
-    lastSales,
-    lastExpenses,
+    lastSales: lastMonthSales,
+    lastExpenses: lastMonthExpenses,
     salesGrowthRate,
     expenseGrowthRate,
     profitMargin,
