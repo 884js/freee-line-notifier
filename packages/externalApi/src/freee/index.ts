@@ -9,6 +9,7 @@ import type {
   GetCurrentUserResponse,
   GetDealsResponse,
   GetTagsResponse,
+  GetTrialBalanceResponse,
   GetWalletTxnResponse,
   GetWalletTxtListResponse,
   GetWalletablesResponse,
@@ -235,5 +236,37 @@ export class FreeePrivateApi {
     });
     const { tags } = (await response.json()) as GetTagsResponse;
     return tags;
+  };
+
+  getTrialBalance = async ({
+    companyId,
+    fiscalYear,
+    startMonth,
+    endMonth,
+  }: {
+    companyId: number;
+    fiscalYear?: number;
+    startMonth?: number;
+    endMonth?: number;
+  }) => {
+    const params = new URLSearchParams({
+      company_id: companyId.toString(),
+    });
+
+    if (fiscalYear) params.append("fiscal_year", fiscalYear.toString());
+    if (startMonth) params.append("start_month", startMonth.toString());
+    if (endMonth) params.append("end_month", endMonth.toString());
+
+    const response = await privateApi(
+      `reports/trial_bs?${params.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+        },
+      },
+    );
+
+    return (await response.json()) as GetTrialBalanceResponse;
   };
 }

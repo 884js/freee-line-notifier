@@ -1,7 +1,4 @@
-import {
-  FreeePrivateApi,
-  WALLET_TXNS_STATUS,
-} from "@freee-line-notifier/external-api/freee";
+import { FreeePrivateApi } from "@freee-line-notifier/external-api/freee";
 import { getPrisma } from "@freee-line-notifier/prisma";
 import type { Env } from "hono";
 import { generateDailyReportMessage } from "../lib/MessagingApi/generateDailyReportMessage";
@@ -80,15 +77,27 @@ const generateDailyReport = async ({
     accessToken: result.accessToken,
   });
 
-  const [walletables, walletTxnList, deals] = await Promise.all([
-    await privateApi.getWalletables({
-      companyId: company.companyId,
-    }),
-    await privateApi.getWalletTxnList({
-      companyId: company.companyId,
-    }),
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
+  const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+  const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+
+  const [deals, currentMonthTrialBalance, lastMonthTrialBalance] = await Promise.all([
     await privateApi.getDeals({
       companyId: company.companyId,
+    }),
+    await privateApi.getTrialBalance({
+      companyId: company.companyId,
+      fiscalYear: currentYear,
+      startMonth: currentMonth,
+      endMonth: currentMonth,
+    }),
+    await privateApi.getTrialBalance({
+      companyId: company.companyId,
+      fiscalYear: lastMonthYear,
+      startMonth: lastMonth,
+      endMonth: lastMonth,
     }),
   ]);
 
@@ -117,31 +126,90 @@ const generateDailyReport = async ({
         .filter((name) => name !== undefined),
     }));
 
-  const waitingTxns = walletTxnList
-    .filter((wallet) => wallet.status === WALLET_TXNS_STATUS.WAITING)
-    .map((txn) => ({
-      id: txn.id,
-      amount: txn.amount,
-      description: txn.description,
-      walletableName: walletables.find(
-        (wallet) => wallet.id === txn.walletable_id,
-      )?.name,
-      date: txn.date,
-    }));
+  const monthlyProgress = calculateMonthlyProgress(
+    currentMonthTrialBalance,
+    lastMonthTrialBalance,
+  );
 
   return {
     companyId: company.companyId,
-    txns: waitingTxns,
     deals: tagDeals,
+    monthlyProgress,
+  };
+};
+
+const calculateMonthlyProgress = (
+  currentMonth: Awaited<ReturnType<FreeePrivateApi["getTrialBalance"]>>,
+  lastMonth: Awaited<ReturnType<FreeePrivateApi["getTrialBalance"]>>,
+) => {
+  const getSalesAmount = (trialBalance: typeof currentMonth) => {
+    const salesAccounts = trialBalance.trial_balance.balances.filter(
+      (balance) =>
+        balance.account_item_name.includes("売上") &&
+        !balance.account_item_name.includes("原価"),
+    );
+    return salesAccounts.reduce(
+      (sum, account) => sum + account.credit_amount - account.debit_amount,
+      0,
+    );
+  };
+
+  const getExpenseAmount = (trialBalance: typeof currentMonth) => {
+    const expenseAccounts = trialBalance.trial_balance.balances.filter(
+      (balance) =>
+        balance.account_item_name.includes("費") ||
+        balance.account_item_name.includes("経費"),
+    );
+    return expenseAccounts.reduce(
+      (sum, account) => sum + account.debit_amount - account.credit_amount,
+      0,
+    );
+  };
+
+  const currentSales = getSalesAmount(currentMonth);
+  const currentExpenses = getExpenseAmount(currentMonth);
+  const lastSales = getSalesAmount(lastMonth);
+  const lastExpenses = getExpenseAmount(lastMonth);
+
+  const salesGrowthRate = lastSales > 0 ? ((currentSales - lastSales) / lastSales) * 100 : 0;
+  const expenseGrowthRate = lastExpenses > 0 ? ((currentExpenses - lastExpenses) / lastExpenses) * 100 : 0;
+  const currentProfit = currentSales - currentExpenses;
+  const profitMargin = currentSales > 0 ? (currentProfit / currentSales) * 100 : 0;
+
+  return {
+    currentSales,
+    currentExpenses,
+    currentProfit,
+    lastSales,
+    lastExpenses,
+    salesGrowthRate,
+    expenseGrowthRate,
+    profitMargin,
   };
 };
 
 const generateLineMessage = (result: GenerateDailyReportType) => {
   const today = formatJST(new Date(), "yyyy/MM/dd");
+  const { monthlyProgress, deals } = result;
+  
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("ja-JP", {
+      style: "currency",
+      currency: "JPY",
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const formatPercentage = (value: number) => {
+    const sign = value > 0 ? "+" : "";
+    return `${sign}${value.toFixed(1)}%`;
+  };
+
+  const altText = `${today} 売上${formatCurrency(monthlyProgress.currentSales)}(${formatPercentage(monthlyProgress.salesGrowthRate)}) 利益${formatCurrency(monthlyProgress.currentProfit)} 要領収書${deals.length}件`;
 
   return {
     type: "flex" as const,
-    altText: `デイリーレポート(${today})`,
+    altText,
     contents: generateDailyReportMessage(result),
   };
 };

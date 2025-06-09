@@ -1,12 +1,11 @@
-import type { FlexBubble, FlexComponent } from "@line/bot-sdk";
+import type { FlexBubble } from "@line/bot-sdk";
 import type { GenerateDailyReportType } from "../../functions/dailyReportModule";
-import { formatJST } from "../date-fns";
+import { generateMonthlyProgressMessage } from "./generateMonthlyProgressMessage";
 
 export const generateDailyReportMessage = ({
-  txns,
   deals,
+  monthlyProgress,
 }: GenerateDailyReportType) => {
-  const txnsCount = txns.length;
   return {
     type: "bubble",
     body: {
@@ -23,125 +22,37 @@ export const generateDailyReportMessage = ({
           type: "separator",
           margin: "sm",
         },
+        generateMonthlyProgressMessage(monthlyProgress),
         {
-          type: "text" as const,
-          text: `未処理の取引(${txnsCount}件)`,
+          type: "separator",
           margin: "sm",
-          decoration: "underline" as const,
-          weight: "bold",
-        },
-        {
-          type: "button",
-          action: {
-            type: "uri",
-            label: "確認",
-            uri: "https://freee-line-dev.pages.dev/api/link/wallet_txn",
-          },
-          height: "sm",
-          style: "link",
         },
         {
           type: "box",
-          layout: "vertical",
-          contents: getTxnsText(txns),
-        },
-        {
-          type: "text" as const,
-          text: `領収書が必要な取引(${deals.length}件)`,
+          layout: "horizontal",
+          contents: [
+            {
+              type: "text",
+              text: "領収書が必要な取引",
+              flex: 1,
+              size: "sm",
+              color: "#666666",
+              weight: "bold",
+            },
+            {
+              type: "text",
+              text: `${deals.length}件`,
+              flex: 0,
+              size: "sm",
+              align: "end",
+              weight: "bold",
+              color: deals.length > 0 ? "#ff4444" : "#00c73c",
+            },
+          ],
           margin: "sm",
-          decoration: "underline" as const,
-          weight: "bold",
-        },
-        {
-          type: "box",
-          layout: "vertical",
-          contents: getDealsText(deals),
         },
       ],
     },
   } satisfies FlexBubble;
 };
 
-const getDealsText = (deals: GenerateDailyReportType["deals"]) => {
-  const getDealText = (deal: GenerateDailyReportType["deals"][number]) =>
-    ({
-      type: "box",
-      layout: "vertical",
-      contents: [
-        {
-          type: "box",
-          layout: "horizontal",
-          contents: [
-            {
-              type: "text",
-              text: formatJST(deal.date, "yyyy/MM/dd"),
-              gravity: "center",
-              size: "lg",
-            },
-          ],
-          margin: "sm",
-        },
-        {
-          type: "text",
-          text: `勘定科目: ${deal.accountItemNames.join(", ")}`,
-          gravity: "center",
-          size: "md",
-        },
-        {
-          type: "button",
-          action: {
-            type: "uri",
-            label: "確認",
-            uri: deal.url,
-          },
-          height: "sm",
-          style: "link",
-        },
-        {
-          type: "separator",
-        },
-      ],
-    }) satisfies FlexComponent;
-
-  return deals.map(getDealText);
-};
-
-const getTxnsText = (txns: GenerateDailyReportType["txns"]) => {
-  const getTxnText = (txn: GenerateDailyReportType["txns"][number]) =>
-    ({
-      type: "box",
-      layout: "vertical",
-      contents: [
-        {
-          type: "box",
-          layout: "horizontal",
-          contents: [
-            {
-              type: "text",
-              text: txn.date,
-              gravity: "center",
-              size: "lg",
-            },
-            {
-              type: "text",
-              text: txn.walletableName || "",
-              align: "end",
-            },
-          ],
-          margin: "sm",
-        },
-        {
-          type: "text",
-          text: txn.description,
-          wrap: true,
-          size: "sm",
-          align: "center",
-        },
-        {
-          type: "separator",
-        },
-      ],
-    }) satisfies FlexComponent;
-
-  return txns.map(getTxnText);
-};

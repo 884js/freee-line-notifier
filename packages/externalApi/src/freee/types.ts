@@ -132,3 +132,37 @@ export type GetTagsResponse = {
     update_date: string;
   }[];
 };
+
+export type GetTrialBalanceResponse = {
+  trial_balance: {
+    company_id: number;
+    fiscal_year: number;
+    start_month: number;
+    end_month: number;
+    start_date: string;
+    end_date: string;
+    adjustment: string;
+    account_item_display_type: string;
+    created_at: string;
+    balances: {
+      account_item_id: number;
+      account_item_name: string;
+      hierarchy_level: number;
+      parent_account_item_id: number | null;
+      opening_balance: number;
+      debit_amount: number;
+      credit_amount: number;
+      closing_balance: number;
+      composition_ratio: number;
+    }[];
+  };
+  meta: {
+    up_to_date: boolean;
+    up_to_date_reasons: {
+      account_item_id: number;
+      account_item_name: string;
+      up_to_date: boolean;
+      journal_count: number;
+    }[];
+  };
+};
