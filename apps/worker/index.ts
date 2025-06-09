@@ -23,14 +23,20 @@ export default {
     if (url.pathname === "/__scheduled") {
       const cron = url.searchParams.get("cron") || "0 0 * * *";
 
+      console.log(`Manual schedule trigger: ${cron}`);
+
       const controller = {
         cron,
         scheduledTime: Date.now(),
       } as ScheduledController;
 
-      ctx.waitUntil(this.scheduled(controller, env, ctx));
-
-      return new Response("Scheduled task triggered", { status: 200 });
+      try {
+        ctx.waitUntil(this.scheduled(controller, env, ctx));
+        return new Response(`Scheduled task triggered: ${cron}`, { status: 200 });
+      } catch (error) {
+        console.error("Error in manual schedule trigger:", error);
+        return new Response(`Error: ${error}`, { status: 500 });
+      }
     }
 
     return new Response("Worker is running", { status: 200 });
@@ -76,20 +82,31 @@ async function handleSchedule({
   switch (type) {
     case SCHEDULE_TYPE.DAILY_REPORT:
       {
+        console.log(`Processing daily report for ${userList.length} users`);
         await Promise.all(
-          userList.map(async (user) => {
-            const result = await dailyReportModule.generate({
-              env,
-              lineUserId: user.lineUserId,
-            });
-            console.log("SCHEDULE_TYPE.DAILY_REPORT result", result);
+          userList.map(async (user, index) => {
+            console.log(`Processing user ${index + 1}/${userList.length}: ${user.lineUserId}`);
+            try {
+              const result = await dailyReportModule.generate({
+                env,
+                lineUserId: user.lineUserId,
+              });
+              console.log("SCHEDULE_TYPE.DAILY_REPORT result", { 
+                userId: user.lineUserId, 
+                companyId: result.companyId 
+              });
 
-            await client.pushMessage({
-              to: user.lineUserId,
-              messages: [dailyReportModule.message(result)],
-            });
+              await client.pushMessage({
+                to: user.lineUserId,
+                messages: [dailyReportModule.message(result)],
+              });
+              console.log(`Daily report sent successfully to user ${user.lineUserId}`);
+            } catch (error) {
+              console.error(`Error processing daily report for user ${user.lineUserId}:`, error);
+            }
           }),
         );
+        console.log("Daily report processing completed");
       }
       break;
     case SCHEDULE_TYPE.SYNC_FAILED_WALLETS:
