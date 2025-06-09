@@ -257,8 +257,8 @@ export class FreeePrivateApi {
     if (startMonth) params.append("start_month", startMonth.toString());
     if (endMonth) params.append("end_month", endMonth.toString());
 
-    const url = `reports/trial_bs?${params.toString()}`;
-    console.log("Requesting trial balance:", url);
+    const url = `reports/trial_pl?${params.toString()}`;
+    console.log("Requesting trial P&L:", url);
 
     const response = await privateApi(url, {
       method: "GET",

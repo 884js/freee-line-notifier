@@ -164,8 +164,8 @@ const calculateMonthlyProgress = (
   console.log("Calculating monthly progress...");
   
   // 安全性チェック
-  if (!currentMonth?.trial_balance?.balances || !lastMonth?.trial_balance?.balances) {
-    console.warn("Trial balance data is incomplete, using fallback values");
+  if (!currentMonth?.trial_pl?.balances || !lastMonth?.trial_pl?.balances) {
+    console.warn("Trial P&L data is incomplete, using fallback values");
     return {
       currentSales: 0,
       currentExpenses: 0,
@@ -179,8 +179,8 @@ const calculateMonthlyProgress = (
   }
   
   const getSalesAmount = (trialBalance: typeof currentMonth) => {
-    if (!trialBalance?.trial_balance?.balances) return 0;
-    const salesAccounts = trialBalance.trial_balance.balances.filter(
+    if (!trialBalance?.trial_pl?.balances) return 0;
+    const salesAccounts = trialBalance.trial_pl.balances.filter(
       (balance) =>
         balance.account_item_name.includes("売上") &&
         !balance.account_item_name.includes("原価"),
@@ -192,8 +192,8 @@ const calculateMonthlyProgress = (
   };
 
   const getExpenseAmount = (trialBalance: typeof currentMonth) => {
-    if (!trialBalance?.trial_balance?.balances) return 0;
-    const expenseAccounts = trialBalance.trial_balance.balances.filter(
+    if (!trialBalance?.trial_pl?.balances) return 0;
+    const expenseAccounts = trialBalance.trial_pl.balances.filter(
       (balance) =>
         balance.account_item_name.includes("費") ||
         balance.account_item_name.includes("経費"),
