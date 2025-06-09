@@ -1,6 +1,6 @@
 import { getPrisma } from "@freee-line-notifier/prisma";
 import { dailyReportModule, walletModule } from "@freee-line-notifier/server";
-import * as line from "@line/bot-sdk";
+import { messagingApi } from "@line/bot-sdk";
 import type { Env } from "hono";
 
 const SCHEDULE_TYPE = {
@@ -18,21 +18,21 @@ export default {
     ctx: ExecutionContext,
   ): Promise<Response> {
     const url = new URL(request.url);
-    
+
     // スケジュールテスト用エンドポイント
     if (url.pathname === "/__scheduled") {
       const cron = url.searchParams.get("cron") || "0 0 * * *";
-      
+
       const controller = {
         cron,
         scheduledTime: Date.now(),
       } as ScheduledController;
-      
+
       ctx.waitUntil(this.scheduled(controller, env, ctx));
-      
+
       return new Response("Scheduled task triggered", { status: 200 });
     }
-    
+
     return new Response("Worker is running", { status: 200 });
   },
 
@@ -62,15 +62,13 @@ async function handleSchedule({
   env,
   type,
 }: { env: Env["Bindings"]; type: ScheduleType }) {
-  const { LINE_CHANNEL_SECRET, LINE_CHANNEL_ACCESS_TOKEN, DATABASE_URL } = env;
+  const { LINE_CHANNEL_ACCESS_TOKEN, DATABASE_URL } = env;
 
-  const config: line.ClientConfig = {
+  const config = {
     channelAccessToken: LINE_CHANNEL_ACCESS_TOKEN,
   };
 
-  const client = new line.messagingApi.MessagingApiClient(config);
-
-  line.middleware({ channelSecret: LINE_CHANNEL_SECRET });
+  const client = new messagingApi.MessagingApiClient(config);
 
   const prisma = getPrisma(DATABASE_URL);
   const userList = await prisma.user.findMany();

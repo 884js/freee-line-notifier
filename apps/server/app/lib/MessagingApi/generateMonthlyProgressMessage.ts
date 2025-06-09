@@ -1,9 +1,9 @@
-import type { FlexComponent } from "@line/bot-sdk";
+import type { messagingApi } from "@line/bot-sdk";
 import type { GenerateDailyReportType } from "../../functions/dailyReportModule";
 
 export const generateMonthlyProgressMessage = (
   monthlyProgress: GenerateDailyReportType["monthlyProgress"],
-): FlexComponent => {
+): messagingApi.FlexComponent => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("ja-JP", {
       style: "currency",
@@ -80,8 +80,7 @@ export const generateMonthlyProgressMessage = (
             flex: 1,
             size: "xs",
             align: "end",
-            color:
-              monthlyProgress.salesGrowthRate > 0 ? "#00c73c" : "#ff4444",
+            color: monthlyProgress.salesGrowthRate > 0 ? "#00c73c" : "#ff4444",
           },
         ],
       },

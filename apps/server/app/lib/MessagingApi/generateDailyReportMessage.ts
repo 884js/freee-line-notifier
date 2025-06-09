@@ -1,4 +1,4 @@
-import type { FlexBubble } from "@line/bot-sdk";
+import type { messagingApi } from "@line/bot-sdk";
 import type { GenerateDailyReportType } from "../../functions/dailyReportModule";
 import { generateMonthlyProgressMessage } from "./generateMonthlyProgressMessage";
 
@@ -53,6 +53,5 @@ export const generateDailyReportMessage = ({
         },
       ],
     },
-  } satisfies FlexBubble;
+  } satisfies messagingApi.FlexBubble;
 };
-

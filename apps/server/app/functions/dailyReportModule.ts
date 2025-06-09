@@ -83,23 +83,24 @@ const generateDailyReport = async ({
   const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
   const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
 
-  const [deals, currentMonthTrialBalance, lastMonthTrialBalance] = await Promise.all([
-    await privateApi.getDeals({
-      companyId: company.companyId,
-    }),
-    await privateApi.getTrialBalance({
-      companyId: company.companyId,
-      fiscalYear: currentYear,
-      startMonth: currentMonth,
-      endMonth: currentMonth,
-    }),
-    await privateApi.getTrialBalance({
-      companyId: company.companyId,
-      fiscalYear: lastMonthYear,
-      startMonth: lastMonth,
-      endMonth: lastMonth,
-    }),
-  ]);
+  const [deals, currentMonthTrialBalance, lastMonthTrialBalance] =
+    await Promise.all([
+      await privateApi.getDeals({
+        companyId: company.companyId,
+      }),
+      await privateApi.getTrialBalance({
+        companyId: company.companyId,
+        fiscalYear: currentYear,
+        startMonth: currentMonth,
+        endMonth: currentMonth,
+      }),
+      await privateApi.getTrialBalance({
+        companyId: company.companyId,
+        fiscalYear: lastMonthYear,
+        startMonth: lastMonth,
+        endMonth: lastMonth,
+      }),
+    ]);
 
   const tagDeals = deals
     .filter((deal) => {
@@ -171,10 +172,15 @@ const calculateMonthlyProgress = (
   const lastSales = getSalesAmount(lastMonth);
   const lastExpenses = getExpenseAmount(lastMonth);
 
-  const salesGrowthRate = lastSales > 0 ? ((currentSales - lastSales) / lastSales) * 100 : 0;
-  const expenseGrowthRate = lastExpenses > 0 ? ((currentExpenses - lastExpenses) / lastExpenses) * 100 : 0;
+  const salesGrowthRate =
+    lastSales > 0 ? ((currentSales - lastSales) / lastSales) * 100 : 0;
+  const expenseGrowthRate =
+    lastExpenses > 0
+      ? ((currentExpenses - lastExpenses) / lastExpenses) * 100
+      : 0;
   const currentProfit = currentSales - currentExpenses;
-  const profitMargin = currentSales > 0 ? (currentProfit / currentSales) * 100 : 0;
+  const profitMargin =
+    currentSales > 0 ? (currentProfit / currentSales) * 100 : 0;
 
   return {
     currentSales,
@@ -191,7 +197,7 @@ const calculateMonthlyProgress = (
 const generateLineMessage = (result: GenerateDailyReportType) => {
   const today = formatJST(new Date(), "yyyy/MM/dd");
   const { monthlyProgress, deals } = result;
-  
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("ja-JP", {
       style: "currency",
@@ -211,7 +217,7 @@ const generateLineMessage = (result: GenerateDailyReportType) => {
     type: "flex" as const,
     altText,
     contents: generateDailyReportMessage(result),
-  };
+  } as const;
 };
 
 export const dailyReportModule = {
