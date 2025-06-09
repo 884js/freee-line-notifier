@@ -12,6 +12,30 @@ type ScheduleType = (typeof SCHEDULE_TYPE)[keyof typeof SCHEDULE_TYPE];
 
 // MEMO: http://localhost:8787/__scheduled?cron=30+23+*+*+*にアクセスするとテスト実行される
 export default {
+  async fetch(
+    request: Request,
+    env: Env["Bindings"],
+    ctx: ExecutionContext,
+  ): Promise<Response> {
+    const url = new URL(request.url);
+    
+    // スケジュールテスト用エンドポイント
+    if (url.pathname === "/__scheduled") {
+      const cron = url.searchParams.get("cron") || "0 0 * * *";
+      
+      const controller = {
+        cron,
+        scheduledTime: Date.now(),
+      } as ScheduledController;
+      
+      ctx.waitUntil(this.scheduled(controller, env, ctx));
+      
+      return new Response("Scheduled task triggered", { status: 200 });
+    }
+    
+    return new Response("Worker is running", { status: 200 });
+  },
+
   async scheduled(
     controller: ScheduledController,
     env: Env["Bindings"],
