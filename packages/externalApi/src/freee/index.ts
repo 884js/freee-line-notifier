@@ -257,13 +257,24 @@ export class FreeePrivateApi {
     if (startMonth) params.append("start_month", startMonth.toString());
     if (endMonth) params.append("end_month", endMonth.toString());
 
-    const response = await privateApi(`reports/trial_bs?${params.toString()}`, {
+    const url = `reports/trial_bs?${params.toString()}`;
+    console.log("Requesting trial balance:", url);
+
+    const response = await privateApi(url, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
       },
     });
 
-    return (await response.json()) as GetTrialBalanceResponse;
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Trial balance API error: ${response.status} ${response.statusText}`, errorText);
+      throw new Error(`Trial balance API failed: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("Trial balance response keys:", Object.keys(data as object));
+    return data as GetTrialBalanceResponse;
   };
 }
