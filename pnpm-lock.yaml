@@ -15,8 +15,8 @@ importers:
         specifier: 7.0.2
         version: 7.0.2
       prettier:
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.6.2
+        version: 3.6.2
       wrangler:
         specifier: 3.106.0
         version: 3.106.0(@cloudflare/workers-types@4.20250124.3)
@@ -143,10 +143,6 @@ importers:
       typescript:
         specifier: 5.7.3
         version: 5.7.3
-
-  packages/prisma/dist/output: {}
-
-  packages/prisma/output: {}
 
 packages:
 
@@ -1742,8 +1738,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  prettier@3.4.2:
-    resolution: {integrity: sha512-e9MewbtFo+Fevyuxn/4rrcDAaq0IYxPGLvObpQjiZBMAzB9IGmzlnG9RZy3FFas+eBMu2vA0CszMeduow5dIuQ==}
+  prettier@3.6.2:
+    resolution: {integrity: sha512-I7AIg5boAr5R0FFtJ6rCfD+LFsWHp81dolrFD8S79U9tb8Az2nGrJncnMSnys+bpQJfRUzqs9hnA81OAA3hCuQ==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -3883,7 +3879,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  prettier@3.4.2: {}
+  prettier@3.6.2: {}
 
   printable-characters@1.0.42: {}
 
