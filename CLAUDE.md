@@ -40,10 +40,15 @@ pnpm db:generate  # Generate Prisma client
 pnpm lint         # Run Biome linter with auto-fix
 pnpm format       # Format code with Biome
 pnpm fix          # Run both lint and format
+pnpm typecheck    # Run TypeScript type checking
 
 # Build & Deploy
 pnpm build        # Build server app
+pnpm preview      # Build and preview with wrangler
 pnpm deploy       # Deploy all apps to Cloudflare
+
+# Local development with webhooks
+# Use cloudflared tunnel for LINE webhook testing (requires cloudflared installation)
 ```
 
 ## Testing
@@ -80,3 +85,20 @@ Key variables include:
 2. **Type-safe environment access**: Use `Bindings` type from `global.d.ts` for environment variables
 3. **Edge-compatible code**: Avoid Node.js-specific APIs, use Web APIs instead
 4. **Biome for code quality**: Code formatting and linting are handled by Biome (not ESLint/Prettier)
+5. **File-based routing**: HonoX automatically creates routes based on file structure in `app/routes/`
+6. **Islands architecture**: Place interactive React components in `app/islands/` for client-side hydration
+
+## Key Architectural Decisions
+
+- **Cloudflare Workers Runtime**: The application runs on Cloudflare's edge runtime, requiring edge-compatible code
+- **HonoX Framework**: Provides file-based routing, SSR with React, and middleware system
+- **Monorepo with pnpm workspaces**: Enables code sharing between server and worker apps
+- **Prisma with Accelerate**: Edge-compatible database access through Prisma's accelerate extension
+- **External API Integration**: Centralized API clients in `packages/externalApi` for freee and LINE APIs
+
+## Development Workflow
+
+1. **Local Database**: Run PostgreSQL locally with `docker compose up -d`
+2. **Environment Setup**: Copy `.dev.vars.example` to `.dev.vars` and configure API credentials
+3. **Webhook Testing**: Use cloudflared tunnel for testing LINE webhooks locally
+4. **Code Style**: Always run `pnpm fix` before committing to ensure consistent formatting
