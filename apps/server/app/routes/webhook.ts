@@ -13,6 +13,7 @@ import type {
 import type { Context, Env } from "hono";
 import { createRoute } from "honox/factory";
 import { dailyReportModule } from "../functions/dailyReportModule";
+import { generateTaxRateTableMessage } from "../lib/MessagingApi/generateTaxRateTableMessage";
 
 type LineClientParams = {
   accessToken: string;
@@ -85,6 +86,9 @@ const handleMessageEvent = async ({
       break;
     case "アカウント連携解除":
       await handleUnlinkAccount(messageContext);
+      break;
+    case "税率":
+      await handleTaxRateTable(messageContext);
       break;
   }
 };
@@ -180,6 +184,11 @@ const handleMenu = async ({ event, env }: MessageHandlerContext) => {
               label: "デイリーレポート取得",
               text: "デイリーレポート",
             },
+            {
+              type: "message",
+              label: "税率表",
+              text: "税率",
+            },
           ],
         },
       },
@@ -246,6 +255,18 @@ const handleUnlinkAccount = async ({ event, env }: MessageHandlerContext) => {
   await client.replyMessage({
     replyToken: event.replyToken,
     messages: [{ type: "text", text: "アカウント連携を解除しました" }],
+  });
+};
+
+const handleTaxRateTable = async ({ event, env }: MessageHandlerContext) => {
+  const client = initializeLineClient({
+    accessToken: env.LINE_CHANNEL_ACCESS_TOKEN,
+    secret: env.LINE_CHANNEL_SECRET,
+  });
+
+  await client.replyMessage({
+    replyToken: event.replyToken,
+    messages: [generateTaxRateTableMessage()],
   });
 };
 
