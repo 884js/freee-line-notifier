@@ -53,6 +53,39 @@ const getExpenseBreakdown = (
     .sort((a, b) => b.amount - a.amount);
 };
 
+// 所得税の概算計算（基礎控除 + 青色申告特別控除）
+const DEDUCTIONS = {
+  basic: 480_000, // 基礎控除
+  blueReturn: 650_000, // 青色申告特別控除
+};
+
+const TAX_BRACKETS = [
+  { limit: 1_950_000, rate: 0.05, deduction: 0 },
+  { limit: 3_300_000, rate: 0.1, deduction: 97_500 },
+  { limit: 6_950_000, rate: 0.2, deduction: 427_500 },
+  { limit: 9_000_000, rate: 0.23, deduction: 636_000 },
+  { limit: 18_000_000, rate: 0.33, deduction: 1_536_000 },
+  { limit: 40_000_000, rate: 0.4, deduction: 2_796_000 },
+  { limit: Number.POSITIVE_INFINITY, rate: 0.45, deduction: 4_796_000 },
+];
+
+const calculateTaxEstimate = (sales: number, expenses: number) => {
+  const income = sales - expenses;
+  const totalDeduction = DEDUCTIONS.basic + DEDUCTIONS.blueReturn;
+  const taxableIncome = Math.max(0, income - totalDeduction);
+
+  const bracket = TAX_BRACKETS.find((b) => taxableIncome <= b.limit);
+  const estimatedTax = bracket
+    ? Math.floor(taxableIncome * bracket.rate - bracket.deduction)
+    : 0;
+
+  return {
+    income,
+    taxableIncome,
+    estimatedTax,
+  };
+};
+
 const RECEIPT_REQUIRED_ITEMS = [
   {
     name: "通信費",
@@ -218,11 +251,19 @@ const generateDailyReport = async ({
     );
 
     console.log("Daily report generation completed successfully");
+
+    const taxEstimate = calculateTaxEstimate(
+      monthlyProgress.currentSales,
+      monthlyProgress.currentExpenses,
+    );
+
     return {
       companyId: company.companyId,
       deals: tagDeals,
       monthlyProgress,
       expenseBreakdown: getExpenseBreakdown(thisYearTrialBalance),
+      fiscalYear: thisYearTrialBalance.trial_pl.fiscal_year,
+      taxEstimate,
     };
   } catch (error) {
     console.error("Error in generateDailyReport:", error);
@@ -420,6 +461,8 @@ const testGenerate = async ({
         { name: "交際費", amount: 30000 },
         { name: "雑費", amount: 20000 },
       ],
+      fiscalYear: new Date().getFullYear(),
+      taxEstimate: calculateTaxEstimate(1000000, 500000),
     };
   } catch (error) {
     console.error("Error in testGenerate:", error);

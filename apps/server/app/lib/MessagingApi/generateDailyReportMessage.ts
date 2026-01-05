@@ -2,11 +2,14 @@ import type { messagingApi } from "@line/bot-sdk";
 import type { GenerateDailyReportType } from "../../functions/dailyReportModule";
 import { generateExpenseBreakdownMessage } from "./generateExpenseBreakdownMessage";
 import { generateMonthlyProgressMessage } from "./generateMonthlyProgressMessage";
+import { generateTaxEstimateMessage } from "./generateTaxEstimateMessage";
 
 export const generateDailyReportMessage = ({
   deals,
   monthlyProgress,
   expenseBreakdown,
+  fiscalYear,
+  taxEstimate,
 }: GenerateDailyReportType) => {
   return {
     type: "bubble",
@@ -24,12 +27,17 @@ export const generateDailyReportMessage = ({
           type: "separator",
           margin: "sm",
         },
-        generateMonthlyProgressMessage(monthlyProgress),
+        generateMonthlyProgressMessage(monthlyProgress, fiscalYear),
         {
           type: "separator",
           margin: "sm",
         },
         generateExpenseBreakdownMessage(expenseBreakdown),
+        {
+          type: "separator",
+          margin: "sm",
+        },
+        generateTaxEstimateMessage(taxEstimate),
         {
           type: "separator",
           margin: "sm",

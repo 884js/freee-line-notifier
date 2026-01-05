@@ -3,6 +3,7 @@ import type { GenerateDailyReportType } from "../../functions/dailyReportModule"
 
 export const generateMonthlyProgressMessage = (
   monthlyProgress: GenerateDailyReportType["monthlyProgress"],
+  fiscalYear: number,
 ): messagingApi.FlexComponent => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("ja-JP", {
@@ -30,7 +31,7 @@ export const generateMonthlyProgressMessage = (
     contents: [
       {
         type: "text",
-        text: "月次進捗（年度累計）",
+        text: `${fiscalYear}年 損益`,
         weight: "bold",
         size: "lg",
         margin: "sm",
@@ -45,7 +46,7 @@ export const generateMonthlyProgressMessage = (
         contents: [
           {
             type: "text",
-            text: "今年累計売上",
+            text: "売上",
             flex: 1,
             size: "sm",
             color: "#666666",
@@ -90,7 +91,7 @@ export const generateMonthlyProgressMessage = (
         contents: [
           {
             type: "text",
-            text: "今年累計経費",
+            text: "経費",
             flex: 1,
             size: "sm",
             color: "#666666",
@@ -116,7 +117,7 @@ export const generateMonthlyProgressMessage = (
         contents: [
           {
             type: "text",
-            text: "今年累計利益",
+            text: "利益",
             flex: 1,
             size: "sm",
             color: "#666666",
