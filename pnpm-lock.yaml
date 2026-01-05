@@ -136,6 +136,9 @@ importers:
       '@prisma/client':
         specifier: 7.2.0
         version: 7.2.0(prisma@7.2.0(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(typescript@5.7.3))(typescript@5.7.3)
+      '@prisma/client-runtime-utils':
+        specifier: 7.2.0
+        version: 7.2.0
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20250103.0

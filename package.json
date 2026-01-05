@@ -13,7 +13,8 @@
     "lint": "biome lint -- apply ./",
     "format": "biome format ./ --write",
     "fix": "biome check --write ./",
-    "typecheck": "pnpm run --parallel --recursive --if-present typecheck"
+    "typecheck": "pnpm run --parallel --recursive --if-present typecheck",
+    "db:migrate:local": "./scripts/db-migrate-local.sh"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",

@@ -5,15 +5,17 @@
   "main": "./dist/index.js",
   "scripts": {
     "prepare": "npm run prisma:generate",
-    "prisma:generate": "prisma generate && pnpm run build",
+    "prisma:generate": "prisma generate && pnpm run build && pnpm run copy:output",
     "prisma:migrate:dev": "prisma migrate dev && pnpm run prisma:format",
     "prisma:migrate:prod": "prisma migrate deploy",
     "prisma:format": "prisma format",
-    "build": "tsc"
+    "build": "tsc",
+    "copy:output": "rm -rf ./dist/output && cp -r ./output ./dist/"
   },
   "dependencies": {
     "@prisma/client": "7.2.0",
-    "@prisma/adapter-d1": "7.2.0"
+    "@prisma/adapter-d1": "7.2.0",
+    "@prisma/client-runtime-utils": "7.2.0"
   },
   "devDependencies": {
     "prisma": "7.2.0",
