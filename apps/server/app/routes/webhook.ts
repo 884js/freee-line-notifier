@@ -13,6 +13,7 @@ import type {
 import type { Context, Env } from "hono";
 import { createRoute } from "honox/factory";
 import { dailyReportModule } from "../functions/dailyReportModule";
+import { generateTaxFilingChecklistMessage } from "../lib/MessagingApi/generateTaxFilingChecklistMessage";
 import { generateTaxRateTableMessage } from "../lib/MessagingApi/generateTaxRateTableMessage";
 
 type LineClientParams = {
@@ -89,6 +90,9 @@ const handleMessageEvent = async ({
       break;
     case "税率":
       await handleTaxRateTable(messageContext);
+      break;
+    case "確定申告":
+      await handleTaxFilingChecklist(messageContext);
       break;
   }
 };
@@ -189,6 +193,11 @@ const handleMenu = async ({ event, env }: MessageHandlerContext) => {
               label: "税率表",
               text: "税率",
             },
+            {
+              type: "message",
+              label: "確定申告",
+              text: "確定申告",
+            },
           ],
         },
       },
@@ -267,6 +276,21 @@ const handleTaxRateTable = async ({ event, env }: MessageHandlerContext) => {
   await client.replyMessage({
     replyToken: event.replyToken,
     messages: [generateTaxRateTableMessage()],
+  });
+};
+
+const handleTaxFilingChecklist = async ({
+  event,
+  env,
+}: MessageHandlerContext) => {
+  const client = initializeLineClient({
+    accessToken: env.LINE_CHANNEL_ACCESS_TOKEN,
+    secret: env.LINE_CHANNEL_SECRET,
+  });
+
+  await client.replyMessage({
+    replyToken: event.replyToken,
+    messages: [generateTaxFilingChecklistMessage()],
   });
 };
 
