@@ -10,6 +10,7 @@ type Head = {
 declare module "hono" {
   interface Env {
     Bindings: {
+      DB: D1Database;
       DATABASE_URL: string;
       FREEE_PUBLIC_API_URL: string;
       FREEE_API_URL: string;

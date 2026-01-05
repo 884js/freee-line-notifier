@@ -53,3 +53,5 @@ prisma/client
 src/api/lib/prisma/output
 
 .next
+
+output

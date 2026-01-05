@@ -7,9 +7,9 @@ import { HTTPException } from "hono/http-exception";
 import { createRoute } from "honox/factory";
 
 export const GET = createRoute(async (c) => {
-  const { FREEE_API_CLIENT_ID, FREEE_API_CLIENT_SECRET, DATABASE_URL } = c.env;
+  const { FREEE_API_CLIENT_ID, FREEE_API_CLIENT_SECRET, DB } = c.env;
 
-  const prisma = getPrisma(DATABASE_URL);
+  const prisma = getPrisma(DB);
   const company = await prisma.company.findFirstOrThrow();
 
   if (!company) {
