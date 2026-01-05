@@ -32,6 +32,27 @@ const getTrialBalanceWithFallback = async (
   }
 };
 
+// 経費の科目別データを抽出
+const getExpenseBreakdown = (
+  trialBalance: Awaited<ReturnType<FreeePrivateApi["getTrialBalance"]>>,
+) => {
+  if (!trialBalance?.trial_pl?.balances) return [];
+
+  return trialBalance.trial_pl.balances
+    .filter(
+      (balance) =>
+        balance.account_category_name === "経費" &&
+        !balance.total_line &&
+        balance.closing_balance > 0 &&
+        balance.account_item_name,
+    )
+    .map((balance) => ({
+      name: balance.account_item_name as string,
+      amount: balance.closing_balance,
+    }))
+    .sort((a, b) => b.amount - a.amount);
+};
+
 const RECEIPT_REQUIRED_ITEMS = [
   {
     name: "通信費",
@@ -201,6 +222,7 @@ const generateDailyReport = async ({
       companyId: company.companyId,
       deals: tagDeals,
       monthlyProgress,
+      expenseBreakdown: getExpenseBreakdown(thisYearTrialBalance),
     };
   } catch (error) {
     console.error("Error in generateDailyReport:", error);
@@ -389,7 +411,15 @@ const testGenerate = async ({
         salesGrowthRate: 25.0,
         expenseGrowthRate: 11.1,
         profitMargin: 50.0,
+        monthlyExpenseIncrease: 50000,
       },
+      expenseBreakdown: [
+        { name: "人件費", amount: 300000 },
+        { name: "地代家賃", amount: 100000 },
+        { name: "通信費", amount: 50000 },
+        { name: "交際費", amount: 30000 },
+        { name: "雑費", amount: 20000 },
+      ],
     };
   } catch (error) {
     console.error("Error in testGenerate:", error);

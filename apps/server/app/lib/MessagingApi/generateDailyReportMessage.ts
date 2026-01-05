@@ -1,10 +1,12 @@
 import type { messagingApi } from "@line/bot-sdk";
 import type { GenerateDailyReportType } from "../../functions/dailyReportModule";
+import { generateExpenseBreakdownMessage } from "./generateExpenseBreakdownMessage";
 import { generateMonthlyProgressMessage } from "./generateMonthlyProgressMessage";
 
 export const generateDailyReportMessage = ({
   deals,
   monthlyProgress,
+  expenseBreakdown,
 }: GenerateDailyReportType) => {
   return {
     type: "bubble",
@@ -23,6 +25,11 @@ export const generateDailyReportMessage = ({
           margin: "sm",
         },
         generateMonthlyProgressMessage(monthlyProgress),
+        {
+          type: "separator",
+          margin: "sm",
+        },
+        generateExpenseBreakdownMessage(expenseBreakdown),
         {
           type: "separator",
           margin: "sm",
