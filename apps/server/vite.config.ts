@@ -36,6 +36,7 @@ export default defineConfig(({ mode }) => {
         "@mantine/core",
         "@mantine/form",
         "@line/liff",
+        "@line/bot-sdk",
       ],
     },
   };
