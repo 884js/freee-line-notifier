@@ -74,15 +74,37 @@ const calculateTaxEstimate = (sales: number, expenses: number) => {
   const totalDeduction = DEDUCTIONS.basic + DEDUCTIONS.blueReturn;
   const taxableIncome = Math.max(0, income - totalDeduction);
 
-  const bracket = TAX_BRACKETS.find((b) => taxableIncome <= b.limit);
+  const bracketIndex = TAX_BRACKETS.findIndex((b) => taxableIncome <= b.limit);
+  const bracket = TAX_BRACKETS[bracketIndex];
   const estimatedTax = bracket
     ? Math.floor(taxableIncome * bracket.rate - bracket.deduction)
     : 0;
+
+  // 現在の税率
+  const currentRate = bracket ? bracket.rate * 100 : 45;
+
+  // 次の税率境界（1つ下の税率区分）
+  const prevBracket = bracketIndex > 0 ? TAX_BRACKETS[bracketIndex - 1] : null;
+  const nextBracketLimit = prevBracket ? prevBracket.limit : null;
+  const nextRate = prevBracket ? prevBracket.rate * 100 : null;
+
+  // 次の税率まであといくら経費を使えるか
+  // 課税所得がnextBracketLimit以下になるには、income - totalDeduction <= nextBracketLimit
+  // つまり、income <= nextBracketLimit + totalDeduction
+  // 経費を増やすと income = sales - (expenses + x) になるので
+  // sales - expenses - x <= nextBracketLimit + totalDeduction
+  // x >= taxableIncome - nextBracketLimit
+  const amountToNextBracket =
+    nextBracketLimit !== null ? taxableIncome - nextBracketLimit : null;
 
   return {
     income,
     taxableIncome,
     estimatedTax,
+    currentRate,
+    nextBracketLimit,
+    amountToNextBracket,
+    nextRate,
   };
 };
 
