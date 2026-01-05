@@ -5,6 +5,33 @@ import { generateDailyReportMessage } from "../lib/MessagingApi/generateDailyRep
 import { formatJST } from "../lib/date-fns";
 import { refreshAccessToken } from "./refreshAccessToken";
 
+// 会計年度を取得（存在しなければ前年度にフォールバック）
+const getTrialBalanceWithFallback = async (
+  privateApi: FreeePrivateApi,
+  companyId: number,
+  year: number,
+  endMonth?: number,
+): Promise<Awaited<ReturnType<FreeePrivateApi["getTrialBalance"]>>> => {
+  try {
+    return await privateApi.getTrialBalance({
+      companyId,
+      fiscalYear: year,
+      endMonth,
+    });
+  } catch (error) {
+    // 会計期間が存在しない場合は前年度にフォールバック
+    if (error instanceof Error && error.message.includes("400")) {
+      console.log(`Fiscal year ${year} not found, falling back to ${year - 1}`);
+      return await privateApi.getTrialBalance({
+        companyId,
+        fiscalYear: year - 1,
+        endMonth: endMonth ? 12 : undefined,
+      });
+    }
+    throw error;
+  }
+};
+
 const RECEIPT_REQUIRED_ITEMS = [
   {
     name: "通信費",
@@ -110,20 +137,19 @@ const generateDailyReport = async ({
       privateApi.getDeals({
         companyId: company.companyId,
       }),
-      privateApi.getTrialBalance({
-        companyId: company.companyId,
-        fiscalYear: currentYear,
-        endMonth: currentMonth,
-      }),
-      privateApi.getTrialBalance({
-        companyId: company.companyId,
-        fiscalYear: lastMonthYear,
-        endMonth: lastMonth,
-      }),
-      privateApi.getTrialBalance({
-        companyId: company.companyId,
-        fiscalYear: currentYear,
-      }),
+      getTrialBalanceWithFallback(
+        privateApi,
+        company.companyId,
+        currentYear,
+        currentMonth,
+      ),
+      getTrialBalanceWithFallback(
+        privateApi,
+        company.companyId,
+        lastMonthYear,
+        lastMonth,
+      ),
+      getTrialBalanceWithFallback(privateApi, company.companyId, currentYear),
     ]);
     console.log("freee API data fetched successfully");
     console.log(
