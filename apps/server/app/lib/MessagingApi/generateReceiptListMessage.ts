@@ -49,11 +49,17 @@ const generateDealItem = (deal: Deal): messagingApi.FlexComponent => {
             flex: 1,
           },
           {
-            type: "text",
-            text: "確認 →",
-            size: "xs",
-            color: "#2c67f2",
-            align: "end",
+            type: "box",
+            layout: "horizontal",
+            contents: [
+              {
+                type: "text",
+                text: "確認 →",
+                size: "xs",
+                color: "#2c67f2",
+                align: "end",
+              },
+            ],
             flex: 0,
             action: {
               type: "uri",
