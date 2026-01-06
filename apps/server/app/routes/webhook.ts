@@ -338,15 +338,39 @@ const handlePostbackEvent = async ({
   console.log("Postback data:", data);
   console.log("Postback lineUserId:", lineUserId);
 
+  const client = initializeLineClient({
+    accessToken: env.LINE_CHANNEL_ACCESS_TOKEN,
+    secret: env.LINE_CHANNEL_SECRET,
+  });
+
   if (!lineUserId) {
     console.error("lineUserId not found in postback event");
     return;
   }
 
-  // action=receipt_list の処理
-  if (data === "action=receipt_list") {
-    console.log("Handling receipt_list action");
-    await handleReceiptList({ lineUserId, env });
+  try {
+    // action=receipt_list の処理
+    if (data === "action=receipt_list") {
+      console.log("Handling receipt_list action");
+      // 処理開始を通知
+      await client.pushMessage({
+        to: lineUserId,
+        messages: [{ type: "text", text: "領収書一覧を取得中..." }],
+      });
+      await handleReceiptList({ lineUserId, env });
+    }
+  } catch (error) {
+    console.error("Error in handlePostbackEvent:", error);
+    // エラーをLINEに通知
+    await client.pushMessage({
+      to: lineUserId,
+      messages: [
+        {
+          type: "text",
+          text: `エラーが発生しました: ${error instanceof Error ? error.message : "Unknown error"}`,
+        },
+      ],
+    });
   }
 };
 
