@@ -75,6 +75,8 @@ const generateDealItem = (
   return items;
 };
 
+const MAX_DEALS_TO_DISPLAY = 10;
+
 export const generateReceiptListMessage = (
   deals: GenerateDailyReportType["deals"],
 ): messagingApi.FlexMessage => {
@@ -102,9 +104,29 @@ export const generateReceiptListMessage = (
     };
   }
 
-  const dealItems: messagingApi.FlexComponent[] = deals.flatMap((deal, index) =>
-    generateDealItem(deal, index === deals.length - 1),
+  // 件数が多い場合は制限
+  const displayDeals = deals.slice(0, MAX_DEALS_TO_DISPLAY);
+  const hasMore = deals.length > MAX_DEALS_TO_DISPLAY;
+
+  const dealItems: messagingApi.FlexComponent[] = displayDeals.flatMap(
+    (deal, index) => generateDealItem(deal, index === displayDeals.length - 1),
   );
+
+  // 件数超過の場合は注記を追加
+  if (hasMore) {
+    dealItems.push({
+      type: "separator",
+      margin: "md",
+    });
+    dealItems.push({
+      type: "text",
+      text: `他${deals.length - MAX_DEALS_TO_DISPLAY}件あります`,
+      size: "xs",
+      color: "#999999",
+      align: "center",
+      margin: "md",
+    });
+  }
 
   return {
     type: "flex",

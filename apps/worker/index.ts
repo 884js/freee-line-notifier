@@ -85,6 +85,7 @@ async function handleSchedule({
     case SCHEDULE_TYPE.DAILY_REPORT:
       {
         console.log(`Processing daily report for ${userList.length} users`);
+        const receiptListUrl = `${env.LINE_LIFF_FRONT_URL}/receipts`;
         await Promise.all(
           userList.map(async (user, index) => {
             console.log(
@@ -102,7 +103,7 @@ async function handleSchedule({
 
               await client.pushMessage({
                 to: user.lineUserId,
-                messages: [dailyReportModule.message(result)],
+                messages: [dailyReportModule.message(result, receiptListUrl)],
               });
               console.log(
                 `Daily report sent successfully to user ${user.lineUserId}`,

@@ -4,13 +4,18 @@ import { generateExpenseBreakdownMessage } from "./generateExpenseBreakdownMessa
 import { generateMonthlyProgressMessage } from "./generateMonthlyProgressMessage";
 import { generateTaxEstimateMessage } from "./generateTaxEstimateMessage";
 
+type GenerateDailyReportMessageParams = GenerateDailyReportType & {
+  receiptListUrl: string;
+};
+
 export const generateDailyReportMessage = ({
   deals,
   monthlyProgress,
   expenseBreakdown,
   fiscalYear,
   taxEstimate,
-}: GenerateDailyReportType) => {
+  receiptListUrl,
+}: GenerateDailyReportMessageParams) => {
   // 領収書が必要な取引がある場合のみfooterにボタンを表示
   const footer: messagingApi.FlexBox | undefined =
     deals.length > 0
@@ -21,9 +26,9 @@ export const generateDailyReportMessage = ({
             {
               type: "button",
               action: {
-                type: "postback",
+                type: "uri",
                 label: "詳細を見る",
-                data: "action=receipt_list",
+                uri: receiptListUrl,
               },
               style: "primary",
               color: "#ff4444",

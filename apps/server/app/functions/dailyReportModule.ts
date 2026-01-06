@@ -381,7 +381,10 @@ const calculateMonthlyProgress = (
   };
 };
 
-const generateLineMessage = (result: GenerateDailyReportType) => {
+const generateLineMessage = (
+  result: GenerateDailyReportType,
+  receiptListUrl: string,
+) => {
   const today = formatJST(new Date(), "yyyy/MM/dd");
   const { monthlyProgress, deals } = result;
 
@@ -403,7 +406,7 @@ const generateLineMessage = (result: GenerateDailyReportType) => {
   return {
     type: "flex" as const,
     altText,
-    contents: generateDailyReportMessage(result),
+    contents: generateDailyReportMessage({ ...result, receiptListUrl }),
   } as const;
 };
 

@@ -71,20 +71,25 @@ export type GetDealsResponse = {
     ref_number: string;
     status: string;
     deal_origin_name: string;
-    details: [
-      {
-        id: number;
-        account_item_id: number;
-        tax_code: number;
-        item_id: number | null;
-        section_id: number | null;
-        tag_ids: number[];
-        amount: number;
-        vat: number;
-        description: string;
-        entry_side: "debit" | "credit";
-      },
-    ];
+    details: {
+      id: number;
+      account_item_id: number;
+      tax_code: number;
+      item_id: number | null;
+      section_id: number | null;
+      tag_ids: number[];
+      amount: number;
+      vat: number;
+      description: string | null;
+      entry_side: "debit" | "credit";
+    }[];
+    payments: {
+      id: number;
+      date: string;
+      from_walletable_type: "bank_account" | "credit_card" | "wallet" | "private_account_item";
+      from_walletable_id: number;
+      amount: number;
+    }[];
     receipts: { id: number }[];
   }[];
   meta: {

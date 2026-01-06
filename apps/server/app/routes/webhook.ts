@@ -5,16 +5,10 @@ import {
   middleware,
   validateSignature,
 } from "@line/bot-sdk";
-import type {
-  MessageEvent,
-  PostbackEvent,
-  TemplateMessage,
-  WebhookEvent,
-} from "@line/bot-sdk";
+import type { MessageEvent, TemplateMessage, WebhookEvent } from "@line/bot-sdk";
 import type { Context, Env } from "hono";
 import { createRoute } from "honox/factory";
 import { dailyReportModule } from "../functions/dailyReportModule";
-import { generateReceiptListMessage } from "../lib/MessagingApi/generateReceiptListMessage";
 import { generateTaxFilingChecklistMessage } from "../lib/MessagingApi/generateTaxFilingChecklistMessage";
 import { generateTaxRateTableMessage } from "../lib/MessagingApi/generateTaxRateTableMessage";
 
@@ -67,13 +61,6 @@ const handleMessageEvent = async ({
 }: BaseContext & { event: WebhookEvent }) => {
   console.log("Received event type:", event.type);
 
-  // Postbackイベントの処理
-  if (event.type === "postback") {
-    console.log("Processing postback event");
-    await handlePostbackEvent({ event, env, context });
-    return;
-  }
-
   if (event.type !== "message" || event.message.type !== "text") {
     return;
   }
@@ -123,10 +110,6 @@ type BaseContext = {
 
 type MessageHandlerContext = BaseContext & {
   event: MessageEvent;
-};
-
-type PostbackHandlerContext = BaseContext & {
-  event: PostbackEvent;
 };
 
 const handleAccountSettings = async ({ event, env }: MessageHandlerContext) => {
@@ -241,9 +224,10 @@ const handleDailyReport = async ({ event, env }: MessageHandlerContext) => {
     });
     console.log("Daily report generated:", { companyId: result.companyId });
 
+    const receiptListUrl = `${env.LINE_LIFF_FRONT_URL}/receipts`;
     await client.pushMessage({
       to: lineUserId,
-      messages: [dailyReportModule.message(result)],
+      messages: [dailyReportModule.message(result, receiptListUrl)],
     });
     console.log("Daily report sent successfully");
   } catch (error) {
@@ -327,81 +311,3 @@ const notLinkedMessage = (LIFF_URL: string) => {
   } satisfies TemplateMessage;
 };
 
-// Postbackイベントハンドラー
-const handlePostbackEvent = async ({
-  event,
-  env,
-}: PostbackHandlerContext) => {
-  const data = event.postback.data;
-  const lineUserId = event.source.userId;
-
-  console.log("Postback data:", data);
-  console.log("Postback lineUserId:", lineUserId);
-
-  const client = initializeLineClient({
-    accessToken: env.LINE_CHANNEL_ACCESS_TOKEN,
-    secret: env.LINE_CHANNEL_SECRET,
-  });
-
-  if (!lineUserId) {
-    console.error("lineUserId not found in postback event");
-    return;
-  }
-
-  try {
-    // action=receipt_list の処理
-    if (data === "action=receipt_list") {
-      console.log("Handling receipt_list action");
-      // 処理開始を通知
-      await client.pushMessage({
-        to: lineUserId,
-        messages: [{ type: "text", text: "領収書一覧を取得中..." }],
-      });
-      await handleReceiptList({ lineUserId, env });
-    }
-  } catch (error) {
-    console.error("Error in handlePostbackEvent:", error);
-    // エラーをLINEに通知
-    await client.pushMessage({
-      to: lineUserId,
-      messages: [
-        {
-          type: "text",
-          text: `エラーが発生しました: ${error instanceof Error ? error.message : "Unknown error"}`,
-        },
-      ],
-    });
-  }
-};
-
-// 領収書詳細一覧を送信
-const handleReceiptList = async ({
-  lineUserId,
-  env,
-}: {
-  lineUserId: string;
-  env: Env["Bindings"];
-}) => {
-  try {
-    const client = initializeLineClient({
-      accessToken: env.LINE_CHANNEL_ACCESS_TOKEN,
-      secret: env.LINE_CHANNEL_SECRET,
-    });
-
-    console.log("Fetching receipt list for user:", lineUserId);
-    const result = await dailyReportModule.generate({
-      env,
-      lineUserId,
-    });
-
-    const receiptMessage = generateReceiptListMessage(result.deals);
-    await client.pushMessage({
-      to: lineUserId,
-      messages: [receiptMessage],
-    });
-    console.log("Receipt list sent successfully");
-  } catch (error) {
-    console.error("Error in handleReceiptList:", error);
-    throw error;
-  }
-};
