@@ -12,42 +12,6 @@ export const generateTaxEstimateMessage = (
     }).format(amount);
   };
 
-  // 次の税率境界までの情報を表示するコンポーネント
-  const nextBracketInfo: messagingApi.FlexComponent[] =
-    taxEstimate.amountToNextBracket !== null &&
-    taxEstimate.nextRate !== null &&
-    taxEstimate.amountToNextBracket > 0
-      ? [
-          {
-            type: "separator",
-            margin: "sm",
-          },
-          {
-            type: "box",
-            layout: "horizontal",
-            contents: [
-              {
-                type: "text",
-                text: `税率${taxEstimate.nextRate}%まで`,
-                flex: 1,
-                size: "xs",
-                color: "#666666",
-              },
-              {
-                type: "text",
-                text: `あと${formatCurrency(taxEstimate.amountToNextBracket)}`,
-                flex: 0,
-                size: "xs",
-                align: "end",
-                color: "#0066cc",
-                weight: "bold",
-              },
-            ],
-            margin: "sm",
-          },
-        ]
-      : [];
-
   return {
     type: "box",
     layout: "vertical",
@@ -110,7 +74,7 @@ export const generateTaxEstimateMessage = (
         contents: [
           {
             type: "text",
-            text: `概算所得税（税率${taxEstimate.currentRate}%）`,
+            text: "概算所得税",
             flex: 1,
             size: "xs",
             color: "#666666",
@@ -128,7 +92,6 @@ export const generateTaxEstimateMessage = (
         ],
         margin: "sm",
       },
-      ...nextBracketInfo,
       {
         type: "text",
         text: "※基礎控除+青色申告控除のみ",

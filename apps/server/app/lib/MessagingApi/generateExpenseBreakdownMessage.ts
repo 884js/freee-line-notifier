@@ -19,7 +19,7 @@ export const generateExpenseBreakdownMessage = (
       contents: [
         {
           type: "text",
-          text: "経費内訳",
+          text: "📋 経費内訳",
           weight: "bold",
           size: "sm",
           margin: "sm",
@@ -64,7 +64,7 @@ export const generateExpenseBreakdownMessage = (
     contents: [
       {
         type: "text",
-        text: "経費内訳",
+        text: "📋 経費内訳",
         weight: "bold",
         size: "sm",
         margin: "sm",

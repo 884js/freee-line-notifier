@@ -11,6 +11,25 @@ export const generateDailyReportMessage = ({
   fiscalYear,
   taxEstimate,
 }: GenerateDailyReportType) => {
+  // 領収書が必要な取引がある場合のみボタンを表示
+  const receiptButton: messagingApi.FlexComponent[] =
+    deals.length > 0
+      ? [
+          {
+            type: "button",
+            action: {
+              type: "postback",
+              label: "詳細を見る",
+              data: "action=receipt_list",
+            },
+            style: "primary",
+            color: "#ff4444",
+            height: "sm",
+            margin: "sm",
+          },
+        ]
+      : [];
+
   return {
     type: "bubble",
     body: {
@@ -48,10 +67,10 @@ export const generateDailyReportMessage = ({
           contents: [
             {
               type: "text",
-              text: "領収書が必要な取引",
+              text: deals.length > 0 ? "⚠️ 領収書が必要" : "✅ 領収書が必要",
               flex: 1,
               size: "sm",
-              color: "#666666",
+              color: deals.length > 0 ? "#ff4444" : "#00c73c",
               weight: "bold",
             },
             {
@@ -66,6 +85,7 @@ export const generateDailyReportMessage = ({
           ],
           margin: "sm",
         },
+        ...receiptButton,
       ],
     },
   } satisfies messagingApi.FlexBubble;

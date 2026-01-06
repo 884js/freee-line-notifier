@@ -7,12 +7,14 @@ import {
 } from "@line/bot-sdk";
 import type {
   MessageEvent,
+  PostbackEvent,
   TemplateMessage,
   WebhookEvent,
 } from "@line/bot-sdk";
 import type { Context, Env } from "hono";
 import { createRoute } from "honox/factory";
 import { dailyReportModule } from "../functions/dailyReportModule";
+import { generateReceiptListMessage } from "../lib/MessagingApi/generateReceiptListMessage";
 import { generateTaxFilingChecklistMessage } from "../lib/MessagingApi/generateTaxFilingChecklistMessage";
 import { generateTaxRateTableMessage } from "../lib/MessagingApi/generateTaxRateTableMessage";
 
@@ -63,6 +65,12 @@ const handleMessageEvent = async ({
   env,
   context,
 }: BaseContext & { event: WebhookEvent }) => {
+  // Postbackイベントの処理
+  if (event.type === "postback") {
+    await handlePostbackEvent({ event, env, context });
+    return;
+  }
+
   if (event.type !== "message" || event.message.type !== "text") {
     return;
   }
@@ -112,6 +120,10 @@ type BaseContext = {
 
 type MessageHandlerContext = BaseContext & {
   event: MessageEvent;
+};
+
+type PostbackHandlerContext = BaseContext & {
+  event: PostbackEvent;
 };
 
 const handleAccountSettings = async ({ event, env }: MessageHandlerContext) => {
@@ -310,4 +322,55 @@ const notLinkedMessage = (LIFF_URL: string) => {
       ],
     },
   } satisfies TemplateMessage;
+};
+
+// Postbackイベントハンドラー
+const handlePostbackEvent = async ({
+  event,
+  env,
+}: PostbackHandlerContext) => {
+  const data = event.postback.data;
+  const lineUserId = event.source.userId;
+
+  if (!lineUserId) {
+    console.error("lineUserId not found in postback event");
+    return;
+  }
+
+  // action=receipt_list の処理
+  if (data === "action=receipt_list") {
+    await handleReceiptList({ lineUserId, env });
+  }
+};
+
+// 領収書詳細一覧を送信
+const handleReceiptList = async ({
+  lineUserId,
+  env,
+}: {
+  lineUserId: string;
+  env: Env["Bindings"];
+}) => {
+  try {
+    const client = initializeLineClient({
+      accessToken: env.LINE_CHANNEL_ACCESS_TOKEN,
+      secret: env.LINE_CHANNEL_SECRET,
+    });
+
+    console.log("Fetching receipt list for user:", lineUserId);
+    const result = await dailyReportModule.generate({
+      env,
+      lineUserId,
+    });
+
+    const receiptMessage = generateReceiptListMessage(result.deals);
+    await client.pushMessage({
+      to: lineUserId,
+      messages: [receiptMessage],
+    });
+    console.log("Receipt list sent successfully");
+  } catch (error) {
+    console.error("Error in handleReceiptList:", error);
+    throw error;
+  }
 };
