@@ -11,24 +11,27 @@ export const generateDailyReportMessage = ({
   fiscalYear,
   taxEstimate,
 }: GenerateDailyReportType) => {
-  // 領収書が必要な取引がある場合のみボタンを表示
-  const receiptButton: messagingApi.FlexComponent[] =
+  // 領収書が必要な取引がある場合のみfooterにボタンを表示
+  const footer: messagingApi.FlexBox | undefined =
     deals.length > 0
-      ? [
-          {
-            type: "button",
-            action: {
-              type: "postback",
-              label: "詳細を見る",
-              data: "action=receipt_list",
+      ? {
+          type: "box",
+          layout: "vertical",
+          contents: [
+            {
+              type: "button",
+              action: {
+                type: "postback",
+                label: "詳細を見る",
+                data: "action=receipt_list",
+              },
+              style: "primary",
+              color: "#ff4444",
+              height: "sm",
             },
-            style: "primary",
-            color: "#ff4444",
-            height: "sm",
-            margin: "sm",
-          },
-        ]
-      : [];
+          ],
+        }
+      : undefined;
 
   return {
     type: "bubble",
@@ -85,8 +88,8 @@ export const generateDailyReportMessage = ({
           ],
           margin: "sm",
         },
-        ...receiptButton,
       ],
     },
+    footer,
   } satisfies messagingApi.FlexBubble;
 };
