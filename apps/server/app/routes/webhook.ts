@@ -65,8 +65,11 @@ const handleMessageEvent = async ({
   env,
   context,
 }: BaseContext & { event: WebhookEvent }) => {
+  console.log("Received event type:", event.type);
+
   // Postbackイベントの処理
   if (event.type === "postback") {
+    console.log("Processing postback event");
     await handlePostbackEvent({ event, env, context });
     return;
   }
@@ -332,6 +335,9 @@ const handlePostbackEvent = async ({
   const data = event.postback.data;
   const lineUserId = event.source.userId;
 
+  console.log("Postback data:", data);
+  console.log("Postback lineUserId:", lineUserId);
+
   if (!lineUserId) {
     console.error("lineUserId not found in postback event");
     return;
@@ -339,6 +345,7 @@ const handlePostbackEvent = async ({
 
   // action=receipt_list の処理
   if (data === "action=receipt_list") {
+    console.log("Handling receipt_list action");
     await handleReceiptList({ lineUserId, env });
   }
 };
