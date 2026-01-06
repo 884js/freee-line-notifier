@@ -70,7 +70,7 @@ async function handleSchedule({
   env,
   type,
 }: { env: Env["Bindings"]; type: ScheduleType }) {
-  const { LINE_CHANNEL_ACCESS_TOKEN, DATABASE_URL } = env;
+  const { LINE_CHANNEL_ACCESS_TOKEN, DB } = env;
 
   const config = {
     channelAccessToken: LINE_CHANNEL_ACCESS_TOKEN,
@@ -78,7 +78,7 @@ async function handleSchedule({
 
   const client = new messagingApi.MessagingApiClient(config);
 
-  const prisma = getPrisma(DATABASE_URL);
+  const prisma = getPrisma(DB);
   const userList = await prisma.user.findMany();
 
   switch (type) {

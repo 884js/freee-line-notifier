@@ -5,9 +5,20 @@ compatibility_flags = ["nodejs_compat"]
 
 pages_build_output_dir = "./dist"
 
+[[d1_databases]]
+binding = "DB"
+database_name = "freee-line-db"
+database_id = "PLACEHOLDER_DATABASE_ID"
+
 [vars]
 FREEE_API_URL = "https://api.freee.co.jp"
 FREEE_PUBLIC_API_URL = "https://accounts.secure.freee.co.jp"
+
+[env.preview]
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "freee-line-db-preview"
+database_id = "PLACEHOLDER_PREVIEW_DATABASE_ID"
 
 [env.preview.vars]
 FREEE_API_URL = "https://api.freee.co.jp"
@@ -16,6 +27,12 @@ LINE_LIFF_AUTH_URL = "https://liff.line.me/2006799255-85xj9bEY"
 LINE_LIFF_FRONT_URL = "https://liff.line.me/2006799255-oL4RxDPz"
 LINE_LIFF_AUTH_ID = "2006799255-85xj9bEY"
 LINE_LIFF_FRONT_ID = "2006799255-oL4RxDPz"
+
+[env.production]
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "freee-line-db-production"
+database_id = "PLACEHOLDER_PRODUCTION_DATABASE_ID"
 
 [env.production.vars]
 FREEE_API_URL = "https://api.freee.co.jp"

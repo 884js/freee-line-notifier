@@ -162,8 +162,8 @@ const generateDailyReport = async ({
   console.log("generateDailyReport started for user:", lineUserId);
 
   try {
-    const { DATABASE_URL } = env;
-    const prisma = getPrisma(DATABASE_URL);
+    const { DB } = env;
+    const prisma = getPrisma(DB);
     const user = await prisma.user.findFirstOrThrow({
       where: {
         lineUserId,
@@ -443,10 +443,10 @@ const testGenerate = async ({
   console.log("testGenerate called with lineUserId:", lineUserId);
 
   try {
-    const { DATABASE_URL } = env;
-    console.log("DATABASE_URL exists:", !!DATABASE_URL);
+    const { DB } = env;
+    console.log("DB exists:", !!DB);
 
-    const prisma = getPrisma(DATABASE_URL);
+    const prisma = getPrisma(DB);
     console.log("Prisma client created");
 
     const user = await prisma.user.findFirstOrThrow({

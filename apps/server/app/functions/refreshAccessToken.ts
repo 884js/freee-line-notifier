@@ -17,7 +17,7 @@ export async function refreshAccessToken({
     clientSecret: env.FREEE_API_CLIENT_SECRET,
   });
 
-  const prisma = getPrisma(env.DATABASE_URL);
+  const prisma = getPrisma(env.DB);
 
   const accessToken = await freePublicApi.refreshAccessToken({
     refreshToken,

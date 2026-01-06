@@ -121,7 +121,7 @@ const handleAccountSettings = async ({ event, env }: MessageHandlerContext) => {
     secret: env.LINE_CHANNEL_SECRET,
   });
 
-  const prisma = getPrisma(env.DATABASE_URL);
+  const prisma = getPrisma(env.DB);
 
   const user = await prisma.user.findUnique({
     where: {
@@ -253,7 +253,7 @@ const handleUnlinkAccount = async ({ event, env }: MessageHandlerContext) => {
     return;
   }
 
-  const prisma = getPrisma(env.DATABASE_URL);
+  const prisma = getPrisma(env.DB);
 
   await prisma.user.delete({
     where: {

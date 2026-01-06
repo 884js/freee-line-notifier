@@ -5,19 +5,21 @@
   "main": "./dist/index.js",
   "scripts": {
     "prepare": "npm run prisma:generate",
-    "copy:output": "mkdir -p ./output ./dist && cp -r ./output ./dist",
-    "prisma:generate": "prisma generate --no-engine && pnpm run copy:output && pnpm run build",
+    "prisma:generate": "prisma generate && pnpm run build && pnpm run copy:output",
     "prisma:migrate:dev": "prisma migrate dev && pnpm run prisma:format",
     "prisma:migrate:prod": "prisma migrate deploy",
     "prisma:format": "prisma format",
-    "build": "tsc"
+    "build": "tsc",
+    "copy:output": "rm -rf ./dist/output && cp -r ./output ./dist/"
   },
   "dependencies": {
-    "@prisma/client": "6.2.1",
-    "@prisma/extension-accelerate": "1.2.1"
+    "@prisma/client": "7.2.0",
+    "@prisma/adapter-d1": "7.2.0",
+    "@prisma/client-runtime-utils": "7.2.0"
   },
   "devDependencies": {
-    "prisma": "6.3.0",
-    "typescript": "5.7.3"
+    "prisma": "7.2.0",
+    "typescript": "5.7.3",
+    "@cloudflare/workers-types": "^4.20250103.0"
   }
 }

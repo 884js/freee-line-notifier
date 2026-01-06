@@ -5,6 +5,11 @@ compatibility_flags = ["nodejs_compat"]
 
 main = "index.ts"
 
+[[d1_databases]]
+binding = "DB"
+database_name = "freee-line-db"
+database_id = "PLACEHOLDER_DATABASE_ID"
+
 [vars]
 FREEE_API_URL = "https://api.freee.co.jp"
 FREEE_PUBLIC_API_URL = "https://accounts.secure.freee.co.jp"

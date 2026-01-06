@@ -21,7 +21,7 @@ export const registrationRoute = app.post(
       LINE_LIFF_AUTH_URL,
       FREEE_API_CLIENT_ID,
       FREEE_API_CLIENT_SECRET,
-      DATABASE_URL,
+      DB,
     } = c.env;
     const authorization = c.req.header("Authorization");
 
@@ -29,7 +29,7 @@ export const registrationRoute = app.post(
       throw new HTTPException(401, { message: "invalid authorization header" });
     }
 
-    const prisma = getPrisma(DATABASE_URL);
+    const prisma = getPrisma(DB);
 
     const { code } = c.req.valid("form");
     const lineApi = new LineApi({ accessToken: authorization });

@@ -4,9 +4,9 @@ import { createMiddlewareWithEnv } from "../lib/hono/createMiddlewareWithEnv";
 
 export const currentUserMiddleware = createMiddlewareWithEnv(
   async (c, next) => {
-    const { DATABASE_URL } = c.env;
+    const { DB } = c.env;
     const accessToken = c.get("accessToken");
-    const prisma = getPrisma(DATABASE_URL);
+    const prisma = getPrisma(DB);
 
     const lineApi = new LineApi({ accessToken });
 

@@ -25,7 +25,7 @@ export const transactionRoute = app.get(
     }),
   ),
   async (c) => {
-    const { FREEE_API_CLIENT_ID, FREEE_API_CLIENT_SECRET, DATABASE_URL } =
+    const { FREEE_API_CLIENT_ID, FREEE_API_CLIENT_SECRET, DB } =
       c.env;
 
     const { id } = c.req.valid("param");
@@ -34,7 +34,7 @@ export const transactionRoute = app.get(
     const { companyId } = c.req.valid("query");
 
     try {
-      const prisma = getPrisma(DATABASE_URL);
+      const prisma = getPrisma(DB);
       const company = currentUser?.companies.find(
         (compamy) => compamy.companyId === companyId,
       );

@@ -13,8 +13,8 @@ const getSyncFailedWallets = async ({
   env,
   lineUserId,
 }: { env: Env["Bindings"]; lineUserId: string }) => {
-  const { DATABASE_URL } = env;
-  const prisma = getPrisma(DATABASE_URL);
+  const { DB } = env;
+  const prisma = getPrisma(DB);
 
   const user = await prisma.user.findFirstOrThrow({
     where: {
