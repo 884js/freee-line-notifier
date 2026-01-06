@@ -5,31 +5,16 @@ import { generateDailyReportMessage } from "../lib/MessagingApi/generateDailyRep
 import { formatJST } from "../lib/date-fns";
 import { refreshAccessToken } from "./refreshAccessToken";
 
-// 会計年度を取得（存在しなければ前年度にフォールバック）
-const getTrialBalanceWithFallback = async (
+// 試算表を取得（fiscal_yearは指定せず、freeeに自動判断させる）
+const getTrialBalance = async (
   privateApi: FreeePrivateApi,
   companyId: number,
-  year: number,
   endMonth?: number,
 ): Promise<Awaited<ReturnType<FreeePrivateApi["getTrialBalance"]>>> => {
-  try {
-    return await privateApi.getTrialBalance({
-      companyId,
-      fiscalYear: year,
-      endMonth,
-    });
-  } catch (error) {
-    // 会計期間が存在しない場合は前年度にフォールバック
-    if (error instanceof Error && error.message.includes("400")) {
-      console.log(`Fiscal year ${year} not found, falling back to ${year - 1}`);
-      return await privateApi.getTrialBalance({
-        companyId,
-        fiscalYear: year - 1,
-        endMonth: endMonth ? 12 : undefined,
-      });
-    }
-    throw error;
-  }
+  return await privateApi.getTrialBalance({
+    companyId,
+    endMonth,
+  });
 };
 
 // 経費の科目別データを抽出
@@ -191,16 +176,12 @@ const generateDailyReport = async ({
 
     const now = new Date();
     const currentMonth = now.getMonth() + 1;
-    const currentYear = now.getFullYear();
     const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
-    const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
 
     console.log("Date calculation:", {
       now: now.toISOString(),
       currentMonth,
-      currentYear,
       lastMonth,
-      lastMonthYear,
     });
 
     console.log("Fetching data from freee API...");
@@ -213,19 +194,9 @@ const generateDailyReport = async ({
       privateApi.getDeals({
         companyId: company.companyId,
       }),
-      getTrialBalanceWithFallback(
-        privateApi,
-        company.companyId,
-        currentYear,
-        currentMonth,
-      ),
-      getTrialBalanceWithFallback(
-        privateApi,
-        company.companyId,
-        lastMonthYear,
-        lastMonth,
-      ),
-      getTrialBalanceWithFallback(privateApi, company.companyId, currentYear),
+      getTrialBalance(privateApi, company.companyId, currentMonth),
+      getTrialBalance(privateApi, company.companyId, lastMonth),
+      getTrialBalance(privateApi, company.companyId),
     ]);
     console.log("freee API data fetched successfully");
     console.log(
