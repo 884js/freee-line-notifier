@@ -11,71 +11,68 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-const generateDealItem = (deal: Deal): messagingApi.FlexComponent => {
-  return {
-    type: "box",
-    layout: "vertical",
-    contents: [
-      {
-        type: "box",
-        layout: "horizontal",
-        contents: [
-          {
-            type: "text",
-            text: deal.date,
-            size: "sm",
-            color: "#999999",
-            flex: 1,
-          },
-          {
-            type: "text",
-            text: formatCurrency(deal.amount),
-            size: "sm",
-            weight: "bold",
-            align: "end",
-            flex: 0,
-          },
-        ],
+const generateDealItem = (
+  deal: Deal,
+  isLast: boolean,
+): messagingApi.FlexComponent[] => {
+  const items: messagingApi.FlexComponent[] = [
+    {
+      type: "box",
+      layout: "horizontal",
+      contents: [
+        {
+          type: "text",
+          text: deal.date,
+          size: "sm",
+          color: "#999999",
+          flex: 1,
+        },
+        {
+          type: "text",
+          text: formatCurrency(deal.amount),
+          size: "sm",
+          weight: "bold",
+          align: "end",
+          flex: 0,
+        },
+      ],
+      margin: "md",
+    },
+    {
+      type: "box",
+      layout: "horizontal",
+      contents: [
+        {
+          type: "text",
+          text: deal.accountItemNames.join(", "),
+          size: "xs",
+          color: "#666666",
+          flex: 1,
+        },
+      ],
+      margin: "xs",
+    },
+    {
+      type: "button",
+      action: {
+        type: "uri",
+        label: "freeeで確認",
+        uri: deal.url,
       },
-      {
-        type: "box",
-        layout: "horizontal",
-        contents: [
-          {
-            type: "text",
-            text: deal.accountItemNames.join(", "),
-            size: "xs",
-            color: "#666666",
-            flex: 1,
-          },
-          {
-            type: "box",
-            layout: "horizontal",
-            contents: [
-              {
-                type: "text",
-                text: "確認 →",
-                size: "xs",
-                color: "#2c67f2",
-                align: "end",
-              },
-            ],
-            flex: 0,
-            action: {
-              type: "uri",
-              label: "freeeで確認",
-              uri: deal.url,
-            },
-          },
-        ],
-        margin: "xs",
-      },
-    ],
-    margin: "md",
-    paddingBottom: "md",
-    borderColor: "#eeeeee",
-    borderWidth: "0px 0px 1px 0px",
-  };
+      style: "link",
+      height: "sm",
+    },
+  ];
+
+  // 最後の項目以外はセパレーターを追加
+  if (!isLast) {
+    items.push({
+      type: "separator",
+      margin: "md",
+    });
+  }
+
+  return items;
 };
 
 export const generateReceiptListMessage = (
@@ -93,7 +90,7 @@ export const generateReceiptListMessage = (
           contents: [
             {
               type: "text",
-              text: "✅ 領収書が必要な取引はありません",
+              text: "領収書が必要な取引はありません",
               size: "md",
               color: "#00c73c",
               weight: "bold",
@@ -105,7 +102,9 @@ export const generateReceiptListMessage = (
     };
   }
 
-  const dealItems: messagingApi.FlexComponent[] = deals.map(generateDealItem);
+  const dealItems: messagingApi.FlexComponent[] = deals.flatMap((deal, index) =>
+    generateDealItem(deal, index === deals.length - 1),
+  );
 
   return {
     type: "flex",
@@ -118,7 +117,7 @@ export const generateReceiptListMessage = (
         contents: [
           {
             type: "text",
-            text: "📋 領収書が必要な取引",
+            text: "領収書が必要な取引",
             weight: "bold",
             size: "lg",
           },
