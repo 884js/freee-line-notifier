@@ -9,6 +9,16 @@ main = "index.ts"
 FREEE_API_URL = "https://api.freee.co.jp"
 FREEE_PUBLIC_API_URL = "https://accounts.secure.freee.co.jp"
 
+[env.preview.vars]
+FREEE_API_URL = "https://api.freee.co.jp"
+FREEE_PUBLIC_API_URL = "https://accounts.secure.freee.co.jp"
+LINE_LIFF_FRONT_URL = "https://liff.line.me/2006799255-oL4RxDPz"
+
+[env.production.vars]
+FREEE_API_URL = "https://api.freee.co.jp"
+FREEE_PUBLIC_API_URL = "https://accounts.secure.freee.co.jp"
+LINE_LIFF_FRONT_URL = "https://liff.line.me/2006799255-GJ4l3wMO"
+
 [triggers]
 crons = ["0 0 * * *", "30 23 * * *"]
 
